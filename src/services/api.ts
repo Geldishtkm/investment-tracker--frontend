@@ -1,4 +1,4 @@
-import { Asset } from '../types';
+import { Asset, CryptoPrice, AssetWithPrice } from '../types';
 
 const API_BASE_URL = '/api/assets';
 
@@ -109,10 +109,62 @@ export const assetService = {
     }
   },
 
+  // Get crypto price
+  getCryptoPrice: async (coinId: string): Promise<number> => {
+    try {
+      const response = await fetch(`/api/crypto/price/${coinId}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch price for ${coinId}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching crypto price:', error);
+      throw error;
+    }
+  },
+
+  // Update asset with current crypto price
+  updateAssetWithCurrentPrice: async (assetId: number): Promise<AssetWithPrice> => {
+    try {
+      const response = await fetch(`/api/assets/${assetId}/update-price`, {
+        method: 'PUT',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update asset price');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating asset price:', error);
+      throw error;
+    }
+  },
+
+  // Get all assets with current prices
+  getAllAssetsWithPrices: async (): Promise<AssetWithPrice[]> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/with-prices`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch assets with prices');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching assets with prices:', error);
+      throw error;
+    }
+  },
+
   // Calculate total value from assets (client-side calculation)
   calculateTotalValue: (assets: Asset[]): number => {
     return assets.reduce((total, asset) => {
       return total + (asset.quantity * asset.pricePerUnit);
+    }, 0);
+  },
+
+  // Calculate total value with current prices
+  calculateTotalValueWithCurrentPrices: (assets: AssetWithPrice[]): number => {
+    return assets.reduce((total, asset) => {
+      const price = asset.currentPrice || asset.pricePerUnit;
+      return total + (asset.quantity * price);
     }, 0);
   },
 }; 

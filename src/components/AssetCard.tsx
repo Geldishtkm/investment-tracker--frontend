@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { TrendingUp, DollarSign, Package, Edit, Trash2, MoreVertical, X, Check } from 'lucide-react';
-import { Asset } from '../types';
+import React, { useState, useEffect } from 'react';
+import { TrendingUp, DollarSign, Package, Edit, Trash2, MoreVertical, X, Check, RefreshCw, TrendingDown } from 'lucide-react';
+import { Asset, AssetWithPrice } from '../types';
+import { assetService } from '../services/api';
 
 interface AssetCardProps {
   asset: Asset;
@@ -18,8 +19,50 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [currentPrice, setCurrentPrice] = useState<number | null>(null);
+  const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
+  const [priceChange, setPriceChange] = useState<number | null>(null);
 
   const totalValue = asset.quantity * asset.pricePerUnit;
+  const currentTotalValue = currentPrice ? asset.quantity * currentPrice : totalValue;
+
+  // Fetch current crypto price on component mount
+  useEffect(() => {
+    if (isCryptoAsset(asset.name)) {
+      fetchCurrentPrice();
+    }
+  }, [asset.name]);
+
+  const isCryptoAsset = (name: string): boolean => {
+    const cryptoKeywords = ['bitcoin', 'btc', 'ethereum', 'eth', 'solana', 'sol', 'cardano', 'ada', 'polkadot', 'dot'];
+    return cryptoKeywords.some(keyword => name.toLowerCase().includes(keyword));
+  };
+
+  const fetchCurrentPrice = async () => {
+    try {
+      setIsUpdatingPrice(true);
+      const coinId = getCoinId(asset.name);
+      if (coinId) {
+        const price = await assetService.getCryptoPrice(coinId);
+        setCurrentPrice(price);
+        setPriceChange(price - asset.pricePerUnit);
+      }
+    } catch (error) {
+      console.error('Error fetching current price:', error);
+    } finally {
+      setIsUpdatingPrice(false);
+    }
+  };
+
+  const getCoinId = (name: string): string | null => {
+    const nameLower = name.toLowerCase();
+    if (nameLower.includes('bitcoin') || nameLower.includes('btc')) return 'bitcoin';
+    if (nameLower.includes('ethereum') || nameLower.includes('eth')) return 'ethereum';
+    if (nameLower.includes('solana') || nameLower.includes('sol')) return 'solana';
+    if (nameLower.includes('cardano') || nameLower.includes('ada')) return 'cardano';
+    if (nameLower.includes('polkadot') || nameLower.includes('dot')) return 'polkadot';
+    return null;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -82,6 +125,11 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
       const savedAsset = await response.json();
       onUpdate(savedAsset);
       setIsEditing(false);
+      
+      // Refresh current price if it's a crypto asset
+      if (isCryptoAsset(updatedAsset.name)) {
+        fetchCurrentPrice();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -107,6 +155,12 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
     } catch (err) {
       alert('Error deleting asset: ' + (err instanceof Error ? err.message : 'Unknown error'));
     }
+  };
+
+  const formatPriceChange = (change: number): string => {
+    const percent = (change / asset.pricePerUnit) * 100;
+    const sign = change >= 0 ? '+' : '';
+    return `${sign}${change.toFixed(2)} (${sign}${percent.toFixed(2)}%)`;
   };
 
   if (isEditing) {
@@ -212,6 +266,16 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
         
         {showActions && (
           <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-10 min-w-[120px]">
+            {isCryptoAsset(asset.name) && (
+              <button
+                onClick={fetchCurrentPrice}
+                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-sm"
+                disabled={isUpdatingPrice}
+              >
+                <RefreshCw size={14} className={isUpdatingPrice ? 'animate-spin' : ''} />
+                {isUpdatingPrice ? 'Updating...' : 'Update Price'}
+              </button>
+            )}
             <button
               onClick={handleEdit}
               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-sm"
@@ -243,11 +307,35 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
         </div>
         <div className="text-right">
           <div className="text-2xl font-bold text-green-600">
-            ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ${currentTotalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="text-sm text-gray-500">Total Value</div>
         </div>
       </div>
+
+      {/* Price Information */}
+      {isCryptoAsset(asset.name) && currentPrice && (
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-blue-800">Current Price</span>
+            <span className="text-sm font-bold text-blue-800">
+              ${currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+          {priceChange !== null && (
+            <div className="flex items-center gap-2">
+              {priceChange >= 0 ? (
+                <TrendingUp size={14} className="text-green-500" />
+              ) : (
+                <TrendingDown size={14} className="text-red-500" />
+              )}
+              <span className={`text-sm font-medium ${priceChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {formatPriceChange(priceChange)}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Asset Details */}
       <div className="grid grid-cols-2 gap-4 mb-4">
@@ -286,7 +374,7 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
             <span className="text-sm text-gray-600">Portfolio Share</span>
           </div>
           <div className="text-sm font-medium text-gray-800">
-            {((totalValue / 10000) * 100).toFixed(1)}%
+            {((currentTotalValue / 10000) * 100).toFixed(1)}%
           </div>
         </div>
       </div>

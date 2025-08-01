@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Plus, X, DollarSign, Package, Tag } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, X, DollarSign, Package, Tag, Zap } from 'lucide-react';
 import { AssetFormData } from '../types';
+import { assetService } from '../services/api';
 
 interface AssetFormProps {
   onAssetAdded: (asset: any) => void;
@@ -16,6 +17,8 @@ const AssetForm: React.FC<AssetFormProps> = ({ onAssetAdded, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [calculatedTotal, setCalculatedTotal] = useState(0);
+  const [suggestedPrice, setSuggestedPrice] = useState<number | null>(null);
+  const [isFetchingPrice, setIsFetchingPrice] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -29,6 +32,52 @@ const AssetForm: React.FC<AssetFormProps> = ({ onAssetAdded, onClose }) => {
       const quantity = name === 'quantity' ? parseFloat(value) || 0 : parseFloat(formData.quantity) || 0;
       const price = name === 'pricePerUnit' ? parseFloat(value) || 0 : parseFloat(formData.pricePerUnit) || 0;
       setCalculatedTotal(quantity * price);
+    }
+
+    // Auto-fetch crypto price when name changes
+    if (name === 'name' && isCryptoAsset(value)) {
+      fetchSuggestedPrice(value);
+    }
+  };
+
+  const isCryptoAsset = (name: string): boolean => {
+    const cryptoKeywords = ['bitcoin', 'btc', 'ethereum', 'eth', 'solana', 'sol', 'cardano', 'ada', 'polkadot', 'dot'];
+    return cryptoKeywords.some(keyword => name.toLowerCase().includes(keyword));
+  };
+
+  const getCoinId = (name: string): string | null => {
+    const nameLower = name.toLowerCase();
+    if (nameLower.includes('bitcoin') || nameLower.includes('btc')) return 'bitcoin';
+    if (nameLower.includes('ethereum') || nameLower.includes('eth')) return 'ethereum';
+    if (nameLower.includes('solana') || nameLower.includes('sol')) return 'solana';
+    if (nameLower.includes('cardano') || nameLower.includes('ada')) return 'cardano';
+    if (nameLower.includes('polkadot') || nameLower.includes('dot')) return 'polkadot';
+    return null;
+  };
+
+  const fetchSuggestedPrice = async (assetName: string) => {
+    try {
+      setIsFetchingPrice(true);
+      const coinId = getCoinId(assetName);
+      if (coinId) {
+        const price = await assetService.getCryptoPrice(coinId);
+        setSuggestedPrice(price);
+      }
+    } catch (error) {
+      console.error('Error fetching suggested price:', error);
+      setSuggestedPrice(null);
+    } finally {
+      setIsFetchingPrice(false);
+    }
+  };
+
+  const useSuggestedPrice = () => {
+    if (suggestedPrice) {
+      setFormData(prev => ({
+        ...prev,
+        pricePerUnit: suggestedPrice.toString()
+      }));
+      setCalculatedTotal(parseFloat(formData.quantity) * suggestedPrice);
     }
   };
 
@@ -84,6 +133,7 @@ const AssetForm: React.FC<AssetFormProps> = ({ onAssetAdded, onClose }) => {
         pricePerUnit: ''
       });
       setCalculatedTotal(0);
+      setSuggestedPrice(null);
       
       onClose();
     } catch (err) {
@@ -138,6 +188,36 @@ const AssetForm: React.FC<AssetFormProps> = ({ onAssetAdded, onClose }) => {
               Enter a descriptive name for your asset
             </p>
           </div>
+
+          {/* Suggested Price for Crypto */}
+          {isCryptoAsset(formData.name) && suggestedPrice && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-blue-800">Current Market Price</span>
+                <span className="text-sm font-bold text-blue-800">
+                  ${suggestedPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={useSuggestedPrice}
+                className="btn btn-primary text-sm py-1 px-3 flex-center gap-2"
+              >
+                <Zap size={12} />
+                Use Current Price
+              </button>
+            </div>
+          )}
+
+          {/* Loading indicator for price fetch */}
+          {isFetchingPrice && (
+            <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                <span className="text-sm text-gray-600">Fetching current price...</span>
+              </div>
+            </div>
+          )}
 
           {/* Quantity and Price Grid */}
           <div className="grid grid-cols-2 gap-4">

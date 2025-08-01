@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, RefreshCw, Search, Filter, TrendingUp } from 'lucide-react';
+import { Plus, RefreshCw, Search, Filter, TrendingUp, Zap } from 'lucide-react';
 import AssetForm from './components/AssetForm';
 import AssetCard from './components/AssetCard';
 import PortfolioSummary from './components/PortfolioSummary';
 import EmptyState from './components/EmptyState';
-import { Asset } from './types';
+import CryptoPriceUpdate from './components/CryptoPriceUpdate';
+import { Asset, AssetWithPrice } from './types';
 
 function App() {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -14,6 +15,7 @@ function App() {
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'value' | 'quantity' | 'price'>('name');
+  const [assetsWithPrices, setAssetsWithPrices] = useState<AssetWithPrice[]>([]);
 
   // Fetch assets and total value from backend
   const fetchData = async () => {
@@ -37,6 +39,7 @@ function App() {
 
       setAssets(assetsData);
       setTotalValue(totalData);
+      setAssetsWithPrices(assetsData.map((asset: Asset) => ({ ...asset })));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error fetching data:', err);
@@ -53,6 +56,7 @@ function App() {
   // Handle adding new asset
   const handleAssetAdded = (newAsset: Asset) => {
     setAssets(prev => [...prev, newAsset]);
+    setAssetsWithPrices(prev => [...prev, { ...newAsset }]);
     // Recalculate total value
     const newTotal = totalValue + (newAsset.quantity * newAsset.pricePerUnit);
     setTotalValue(newTotal);
@@ -62,6 +66,9 @@ function App() {
   const handleAssetUpdated = (updatedAsset: Asset) => {
     setAssets(prev => prev.map(asset => 
       asset.id === updatedAsset.id ? updatedAsset : asset
+    ));
+    setAssetsWithPrices(prev => prev.map(asset => 
+      asset.id === updatedAsset.id ? { ...updatedAsset } : asset
     ));
     // Recalculate total value
     const newTotal = assets.reduce((total, asset) => {
@@ -77,11 +84,35 @@ function App() {
   const handleAssetDeleted = (assetId: number) => {
     const deletedAsset = assets.find(asset => asset.id === assetId);
     setAssets(prev => prev.filter(asset => asset.id !== assetId));
+    setAssetsWithPrices(prev => prev.filter(asset => asset.id !== assetId));
     // Recalculate total value
     if (deletedAsset) {
       const newTotal = totalValue - (deletedAsset.quantity * deletedAsset.pricePerUnit);
       setTotalValue(newTotal);
     }
+  };
+
+  // Handle crypto price updates
+  const handleCryptoPriceUpdate = (updatedAssets: AssetWithPrice[]) => {
+    setAssetsWithPrices(prev => {
+      const updated = [...prev];
+      updatedAssets.forEach(updatedAsset => {
+        const index = updated.findIndex(asset => asset.id === updatedAsset.id);
+        if (index !== -1) {
+          updated[index] = updatedAsset;
+        }
+      });
+      return updated;
+    });
+
+    // Recalculate total value with current prices
+    const newTotal = updatedAssets.reduce((total, asset) => {
+      const price = asset.currentPrice || asset.pricePerUnit;
+      return total + (asset.quantity * price);
+    }, 0) + assets.filter(asset => !updatedAssets.find(ua => ua.id === asset.id))
+      .reduce((total, asset) => total + (asset.quantity * asset.pricePerUnit), 0);
+
+    setTotalValue(newTotal);
   };
 
   // Handle form close
@@ -136,7 +167,7 @@ function App() {
               Portfolio Tracker
             </h1>
             <p className="text-white text-opacity-90">
-              Track and manage your investment portfolio with precision
+              Track and manage your investment portfolio with real-time crypto prices
             </p>
           </div>
           <div className="flex gap-4">
@@ -169,6 +200,12 @@ function App() {
 
         {/* Portfolio Summary */}
         <PortfolioSummary totalValue={totalValue} assets={assets} />
+
+        {/* Crypto Price Update Section */}
+        <CryptoPriceUpdate 
+          assets={assets} 
+          onPriceUpdate={handleCryptoPriceUpdate}
+        />
 
         {/* Search and Filter Section */}
         {assets.length > 0 && (
