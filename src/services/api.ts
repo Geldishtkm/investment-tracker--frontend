@@ -1,4 +1,4 @@
-import { Asset, CryptoPrice, AssetWithPrice, Coin } from '../types';
+import { Asset, CryptoPrice, AssetWithPrice, Coin, ESGScore } from '../types';
 
 const API_BASE_URL = '/api/assets';
 
@@ -179,6 +179,65 @@ export const assetService = {
     } catch (error) {
       console.error('Error fetching top coins:', error);
       throw error;
+    }
+  },
+
+  // Get detailed coin information
+  getCoinDetails: async (coinId: string): Promise<Coin> => {
+    try {
+      const response = await fetch(`/api/crypto/details/${coinId}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch details for ${coinId}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching coin details:', error);
+      throw error;
+    }
+  },
+};
+
+export const esgService = {
+  // Get ESG score for a specific company
+  async getESGScore(ticker: string): Promise<ESGScore> {
+    const response = await fetch(`/api/esg/${ticker}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ESG score for ${ticker}`);
+    }
+    return response.json();
+  },
+
+  // Get companies with high ESG scores
+  async getHighESGCompanies(minScore: number): Promise<ESGScore[]> {
+    const response = await fetch(`/api/esg/filter?minScore=${minScore}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch high ESG companies');
+    }
+    return response.json();
+  },
+
+  // Save or update ESG score
+  async saveESGScore(esgScore: ESGScore): Promise<ESGScore> {
+    const response = await fetch(`/api/esg`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(esgScore),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to save ESG score');
+    }
+    return response.json();
+  },
+
+  // Delete ESG score
+  async deleteESGScore(ticker: string): Promise<void> {
+    const response = await fetch(`/api/esg/${ticker}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to delete ESG score for ${ticker}`);
     }
   },
 }; 

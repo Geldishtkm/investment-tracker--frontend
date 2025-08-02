@@ -28,7 +28,7 @@ const CoinsPage: React.FC<CoinsPageProps> = ({ onBack, onAssetAdded }) => {
     isVisible: false
   });
 
-  // Fetch top 300 coins from CoinGecko
+  // Fetch top 300 coins from backend
   const fetchCoins = async () => {
     try {
       setLoading(true);
@@ -146,7 +146,7 @@ const CoinsPage: React.FC<CoinsPageProps> = ({ onBack, onAssetAdded }) => {
               Loading Top Coins...
             </h3>
             <p className="text-gray-400">
-              Fetching top 300 coins from CoinGecko API
+              Fetching top 300 coins from backend
             </p>
           </div>
         </div>
