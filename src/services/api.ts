@@ -1,4 +1,4 @@
-import { Asset, CryptoPrice, AssetWithPrice } from '../types';
+import { Asset, CryptoPrice, AssetWithPrice, Coin } from '../types';
 
 const API_BASE_URL = '/api/assets';
 
@@ -166,5 +166,19 @@ export const assetService = {
       const price = asset.currentPrice || asset.pricePerUnit;
       return total + (asset.quantity * price);
     }, 0);
+  },
+
+  // Get top 300 coins with images and prices
+  getTopCoins: async (): Promise<Coin[]> => {
+    try {
+      const response = await fetch('/api/crypto/top');
+      if (!response.ok) {
+        throw new Error('Failed to fetch top coins');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching top coins:', error);
+      throw error;
+    }
   },
 }; 

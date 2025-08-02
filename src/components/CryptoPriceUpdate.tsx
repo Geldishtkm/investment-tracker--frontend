@@ -92,14 +92,14 @@ const CryptoPriceUpdate: React.FC<CryptoPriceUpdateProps> = ({ assets, onPriceUp
   }
 
   return (
-    <div className="card bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200">
-      <div className="flex-between mb-4">
+    <div className="glass-card p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30">
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <Zap size={20} className="text-blue-600" />
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <Zap size={20} className="text-blue-400" />
             Crypto Market Update
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-400">
             {cryptoAssetsCount} crypto asset{cryptoAssetsCount !== 1 ? 's' : ''} detected
           </p>
         </div>
@@ -115,22 +115,22 @@ const CryptoPriceUpdate: React.FC<CryptoPriceUpdateProps> = ({ assets, onPriceUp
 
       {/* Price Changes Summary */}
       {totalValueChange !== 0 && (
-        <div className="mb-4 p-3 bg-white rounded-lg border border-gray-200">
+        <div className="mb-4 p-3 bg-gray-700/30 rounded-lg border border-gray-600/20">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-600">Portfolio Value Change</span>
+            <span className="text-sm font-medium text-gray-400">Portfolio Value Change</span>
             <div className="flex items-center gap-2">
               {totalValueChange >= 0 ? (
-                <TrendingUp size={16} className="text-green-500" />
+                <TrendingUp size={16} className="text-green-400" />
               ) : (
-                <TrendingDown size={16} className="text-red-500" />
+                <TrendingDown size={16} className="text-red-400" />
               )}
-              <span className={`font-bold ${totalValueChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <span className={`font-bold ${totalValueChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {totalValueChange >= 0 ? '+' : ''}${totalValueChange.toLocaleString('en-US', { 
                   minimumFractionDigits: 2, 
                   maximumFractionDigits: 2 
                 })}
               </span>
-              <span className={`text-sm ${totalValueChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <span className={`text-sm ${totalValueChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                 ({totalValueChangePercent >= 0 ? '+' : ''}{totalValueChangePercent.toFixed(2)}%)
               </span>
             </div>
@@ -146,14 +146,14 @@ const CryptoPriceUpdate: React.FC<CryptoPriceUpdateProps> = ({ assets, onPriceUp
           const priceChangePercent = asset.priceChangePercent || 0;
 
           return (
-            <div key={asset.id} className="flex items-center justify-between p-2 bg-white rounded border border-gray-200">
+            <div key={asset.id} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg border border-gray-600/20">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
                   <DollarSign size={16} className="text-white" />
                 </div>
                 <div>
-                  <span className="font-medium text-gray-800">{asset.name}</span>
-                  <div className="text-xs text-gray-500">
+                  <span className="font-medium text-white">{asset.name}</span>
+                  <div className="text-xs text-gray-400">
                     {asset.quantity} × ${asset.pricePerUnit.toLocaleString('en-US', { 
                       minimumFractionDigits: 2, 
                       maximumFractionDigits: 2 
@@ -165,13 +165,13 @@ const CryptoPriceUpdate: React.FC<CryptoPriceUpdateProps> = ({ assets, onPriceUp
               <div className="text-right">
                 {hasCurrentPrice ? (
                   <div>
-                    <div className="font-semibold text-gray-800">
+                    <div className="font-semibold text-white">
                       ${asset.currentPrice!.toLocaleString('en-US', { 
                         minimumFractionDigits: 2, 
                         maximumFractionDigits: 2 
                       })}
                     </div>
-                    <div className={`text-xs flex items-center gap-1 ${priceChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <div className={`text-xs flex items-center gap-1 ${priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {priceChange >= 0 ? (
                         <TrendingUp size={12} />
                       ) : (
@@ -181,7 +181,7 @@ const CryptoPriceUpdate: React.FC<CryptoPriceUpdateProps> = ({ assets, onPriceUp
                     </div>
                   </div>
                 ) : (
-                  <div className="text-sm text-gray-500">Click update to fetch price</div>
+                  <div className="text-sm text-gray-400">Click update to fetch price</div>
                 )}
               </div>
             </div>

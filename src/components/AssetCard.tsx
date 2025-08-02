@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TrendingUp, DollarSign, Package, Edit, Trash2, MoreVertical, X, Check, RefreshCw, TrendingDown } from 'lucide-react';
 import { Asset, AssetWithPrice } from '../types';
 import { assetService } from '../services/api';
+import ConfirmModal from './ConfirmModal';
 
 interface AssetCardProps {
   asset: Asset;
@@ -22,16 +23,34 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
   const [priceChange, setPriceChange] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [coinImage, setCoinImage] = useState<string | null>(null);
 
   const totalValue = asset.quantity * asset.pricePerUnit;
   const currentTotalValue = currentPrice ? asset.quantity * currentPrice : totalValue;
 
-  // Fetch current crypto price on component mount
+  // Fetch current crypto price and image on component mount
   useEffect(() => {
     if (isCryptoAsset(asset.name)) {
       fetchCurrentPrice();
+      fetchCoinImage();
     }
   }, [asset.name]);
+
+  const fetchCoinImage = async () => {
+    try {
+      const coinId = getCoinId(asset.name);
+      if (coinId) {
+        const coinsData = await assetService.getTopCoins();
+        const coin = coinsData.find(c => c.id === coinId);
+        if (coin && coin.image) {
+          setCoinImage(coin.image);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching coin image:', error);
+    }
+  };
 
   const isCryptoAsset = (name: string): boolean => {
     const cryptoKeywords = ['bitcoin', 'btc', 'ethereum', 'eth', 'solana', 'sol', 'cardano', 'ada', 'polkadot', 'dot'];
@@ -137,21 +156,15 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm(`Are you sure you want to delete ${asset.name}?`)) {
-      return;
-    }
+  const handleDelete = () => {
+    setShowDeleteConfirm(true);
+  };
 
+  const confirmDelete = async () => {
     try {
-      const response = await fetch(`/api/assets/${asset.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete asset');
-      }
-
+      await assetService.deleteAsset(asset.id);
       onDelete(asset.id);
+      setShowDeleteConfirm(false);
     } catch (err) {
       alert('Error deleting asset: ' + (err instanceof Error ? err.message : 'Unknown error'));
     }
@@ -165,39 +178,39 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
 
   if (isEditing) {
     return (
-      <div className="card border-2 border-blue-200 bg-blue-50">
-        <div className="flex-between mb-4">
-          <h3 className="text-xl font-bold text-blue-800">Edit Asset</h3>
+      <div className="glass-card p-6 border-2 border-green-500/30">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold gradient-text">Edit Asset</h3>
           <button
             onClick={handleCancel}
-            className="text-blue-600 hover:text-blue-800 transition-colors"
+            className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-600/50 transition-colors"
           >
-            <X size={20} />
+            <X size={20} className="text-gray-300" />
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="form-label text-blue-800">Asset Name</label>
+            <label className="form-label">Asset Name</label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="form-input border-blue-300 focus:border-blue-500"
+              className="form-input"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="form-label text-blue-800">Quantity</label>
+              <label className="form-label">Quantity</label>
               <input
                 type="number"
                 name="quantity"
                 value={formData.quantity}
                 onChange={handleChange}
-                className="form-input border-blue-300 focus:border-blue-500"
+                className="form-input"
                 step="0.000001"
                 min="0"
                 required
@@ -205,13 +218,13 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
             </div>
 
             <div>
-              <label className="form-label text-blue-800">Price/Unit ($)</label>
+              <label className="form-label">Price/Unit ($)</label>
               <input
                 type="number"
                 name="pricePerUnit"
                 value={formData.pricePerUnit}
                 onChange={handleChange}
-                className="form-input border-blue-300 focus:border-blue-500"
+                className="form-input"
                 step="0.01"
                 min="0"
                 required
@@ -220,7 +233,7 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
           </div>
 
           {error && (
-            <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg">
               {error}
             </div>
           )}
@@ -254,22 +267,22 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
   }
 
   return (
-    <div className="card hover:shadow-lg transition-all duration-300 group relative">
+    <div className="glass-card p-6 hover:shadow-lg transition-all duration-300 group relative">
       {/* Action Menu */}
       <div className="absolute top-4 right-4">
         <button
           onClick={() => setShowActions(!showActions)}
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
+          className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-600/50 transition-colors opacity-0 group-hover:opacity-100"
         >
-          <MoreVertical size={16} className="text-gray-600" />
+          <MoreVertical size={16} className="text-gray-300" />
         </button>
         
         {showActions && (
-          <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-10 min-w-[120px]">
+          <div className="absolute right-0 top-10 bg-gray-800/90 backdrop-blur-sm border border-gray-700/50 rounded-lg shadow-lg py-2 z-10 min-w-[120px]">
             {isCryptoAsset(asset.name) && (
               <button
                 onClick={fetchCurrentPrice}
-                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-sm"
+                className="w-full px-4 py-2 text-left hover:bg-gray-700/50 flex items-center gap-2 text-sm text-gray-300"
                 disabled={isUpdatingPrice}
               >
                 <RefreshCw size={14} className={isUpdatingPrice ? 'animate-spin' : ''} />
@@ -278,14 +291,14 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
             )}
             <button
               onClick={handleEdit}
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-sm"
+              className="w-full px-4 py-2 text-left hover:bg-gray-700/50 flex items-center gap-2 text-sm text-gray-300"
             >
               <Edit size={14} />
               Edit
             </button>
             <button
               onClick={handleDelete}
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-sm text-red-600"
+              className="w-full px-4 py-2 text-left hover:bg-gray-700/50 flex items-center gap-2 text-sm text-red-400"
             >
               <Trash2 size={14} />
               Delete
@@ -295,41 +308,52 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
       </div>
 
       {/* Asset Header */}
-      <div className="flex-between mb-6">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+          {coinImage ? (
+            <img 
+              src={coinImage} 
+              alt={asset.name}
+              className="w-12 h-12 rounded-xl object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                target.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+          ) : null}
+          <div className={`w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center ${coinImage ? 'hidden' : ''}`}>
             <Package size={24} className="text-white" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-800">{asset.name}</h3>
-            <p className="text-sm text-gray-500">Asset #{asset.id}</p>
+            <h3 className="text-xl font-bold text-white">{asset.name}</h3>
           </div>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold text-green-600">
+          <div className="text-2xl font-bold text-green-400">
             ${currentTotalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <div className="text-sm text-gray-500">Total Value</div>
+          <div className="text-sm text-gray-400">Total Value</div>
         </div>
       </div>
 
       {/* Price Information */}
       {isCryptoAsset(asset.name) && currentPrice && (
-        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="mb-4 p-3 bg-blue-500/10 rounded-lg border border-blue-500/30">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-blue-800">Current Price</span>
-            <span className="text-sm font-bold text-blue-800">
+            <span className="text-sm font-medium text-blue-400">Current Price</span>
+            <span className="text-sm font-bold text-blue-400">
               ${currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           {priceChange !== null && (
             <div className="flex items-center gap-2">
               {priceChange >= 0 ? (
-                <TrendingUp size={14} className="text-green-500" />
+                <TrendingUp size={14} className="text-green-400" />
               ) : (
-                <TrendingDown size={14} className="text-red-500" />
+                <TrendingDown size={14} className="text-red-400" />
               )}
-              <span className={`text-sm font-medium ${priceChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <span className={`text-sm font-medium ${priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {formatPriceChange(priceChange)}
               </span>
             </div>
@@ -339,12 +363,12 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
 
       {/* Asset Details */}
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="bg-gray-50 rounded-lg p-3">
+        <div className="bg-gray-700/30 rounded-lg p-3 border border-gray-600/20">
           <div className="flex items-center gap-2 mb-1">
-            <Package size={16} className="text-gray-600" />
-            <span className="text-sm font-medium text-gray-600">Quantity</span>
+            <Package size={16} className="text-gray-400" />
+            <span className="text-sm font-medium text-gray-400">Quantity</span>
           </div>
-          <div className="text-lg font-semibold text-gray-800">
+          <div className="text-lg font-semibold text-white">
             {asset.quantity.toLocaleString('en-US', { 
               minimumFractionDigits: 0, 
               maximumFractionDigits: 6 
@@ -352,12 +376,12 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
           </div>
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-3">
+        <div className="bg-gray-700/30 rounded-lg p-3 border border-gray-600/20">
           <div className="flex items-center gap-2 mb-1">
-            <DollarSign size={16} className="text-gray-600" />
-            <span className="text-sm font-medium text-gray-600">Price/Unit</span>
+            <DollarSign size={16} className="text-gray-400" />
+            <span className="text-sm font-medium text-gray-400">Price/Unit</span>
           </div>
-          <div className="text-lg font-semibold text-gray-800">
+          <div className="text-lg font-semibold text-white">
             ${asset.pricePerUnit.toLocaleString('en-US', { 
               minimumFractionDigits: 2, 
               maximumFractionDigits: 2 
@@ -367,17 +391,29 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
       </div>
 
       {/* Portfolio Share */}
-      <div className="pt-4 border-t border-gray-200">
+      <div className="pt-4 border-t border-gray-700/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <TrendingUp size={16} className="text-green-500" />
-            <span className="text-sm text-gray-600">Portfolio Share</span>
+            <TrendingUp size={16} className="text-green-400" />
+            <span className="text-sm text-gray-400">Portfolio Share</span>
           </div>
-          <div className="text-sm font-medium text-gray-800">
+          <div className="text-sm font-medium text-white">
             {((currentTotalValue / 10000) * 100).toFixed(1)}%
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        title="Delete Asset"
+        message={`Are you sure you want to delete "${asset.name}" from your portfolio? This action cannot be undone.`}
+        confirmText="Delete Asset"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+        type="danger"
+      />
     </div>
   );
 };
