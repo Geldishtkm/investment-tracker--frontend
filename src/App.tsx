@@ -9,7 +9,7 @@ import PortfolioSummary from './components/PortfolioSummary';
 import EmptyState from './components/EmptyState';
 import CryptoPriceUpdate from './components/CryptoPriceUpdate';
 import CoinsPage from './components/CoinsPage';
-import ESGPage from './components/ESGPage';
+
 import { Asset, AssetWithPrice } from './types';
 
 function App() {
@@ -169,8 +169,7 @@ function App() {
       {/* Show Coins Page if currentPage is 'coins' */}
       {currentPage === 'coins' ? (
         <CoinsPage onBack={() => handlePageChange('portfolio')} onAssetAdded={handleAssetAdded} />
-      ) : currentPage === 'esg' ? (
-        <ESGPage onBack={() => handlePageChange('portfolio')} />
+      
       ) : (
         <>
           {/* Portfolio Header */}
@@ -198,12 +197,7 @@ function App() {
                  >
                    Top Coins
                  </button>
-                 <button
-                   onClick={() => handlePageChange('esg')}
-                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-                 >
-                   ESG Analysis
-                 </button>
+
               </div>
             </div>
           </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { RefreshCw, TrendingUp, TrendingDown, DollarSign, Zap } from 'lucide-react';
 import { Asset, AssetWithPrice } from '../types';
 import { assetService } from '../services/api';
+import { findCoinId, isCryptoAsset } from '../utils/coinMapping';
 
 interface CryptoPriceUpdateProps {
   assets: Asset[];
@@ -14,21 +15,7 @@ const CryptoPriceUpdate: React.FC<CryptoPriceUpdateProps> = ({ assets, onPriceUp
   const [totalValueChange, setTotalValueChange] = useState<number>(0);
   const [totalValueChangePercent, setTotalValueChangePercent] = useState<number>(0);
 
-  const cryptoKeywords = ['bitcoin', 'btc', 'ethereum', 'eth', 'solana', 'sol', 'cardano', 'ada', 'polkadot', 'dot'];
 
-  const isCryptoAsset = (name: string): boolean => {
-    return cryptoKeywords.some(keyword => name.toLowerCase().includes(keyword));
-  };
-
-  const getCoinId = (name: string): string | null => {
-    const nameLower = name.toLowerCase();
-    if (nameLower.includes('bitcoin') || nameLower.includes('btc')) return 'bitcoin';
-    if (nameLower.includes('ethereum') || nameLower.includes('eth')) return 'ethereum';
-    if (nameLower.includes('solana') || nameLower.includes('sol')) return 'solana';
-    if (nameLower.includes('cardano') || nameLower.includes('ada')) return 'cardano';
-    if (nameLower.includes('polkadot') || nameLower.includes('dot')) return 'polkadot';
-    return null;
-  };
 
   const updateAllCryptoPrices = async () => {
     try {
@@ -38,17 +25,17 @@ const CryptoPriceUpdate: React.FC<CryptoPriceUpdateProps> = ({ assets, onPriceUp
 
       for (const asset of cryptoAssetsList) {
         try {
-          const coinId = getCoinId(asset.name);
+          const coinId = findCoinId(asset.name);
           if (coinId) {
             const currentPrice = await assetService.getCryptoPrice(coinId);
             const priceChange = currentPrice - asset.pricePerUnit;
-            const priceChangePercent = (priceChange / asset.pricePerUnit) * 100;
+            const priceChangePercentage = (priceChange / asset.pricePerUnit) * 100;
 
             updatedAssets.push({
               ...asset,
               currentPrice,
               priceChange,
-              priceChangePercent
+              priceChangePercentage
             });
           }
         } catch (error) {
@@ -143,7 +130,7 @@ const CryptoPriceUpdate: React.FC<CryptoPriceUpdateProps> = ({ assets, onPriceUp
         {cryptoAssets.map((asset) => {
           const hasCurrentPrice = asset.currentPrice !== undefined;
           const priceChange = asset.priceChange || 0;
-          const priceChangePercent = asset.priceChangePercent || 0;
+          const priceChangePercent = asset.priceChangePercentage || 0;
 
           return (
             <div key={asset.id} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg border border-gray-600/20">

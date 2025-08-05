@@ -1,4 +1,4 @@
-import { Asset, CryptoPrice, AssetWithPrice, Coin, ESGScore } from '../types';
+import { Asset, CryptoPrice, AssetWithPrice, Coin, PriceHistoryPoint } from '../types';
 
 const API_BASE_URL = '/api/assets';
 
@@ -197,47 +197,115 @@ export const assetService = {
   },
 };
 
-export const esgService = {
-  // Get ESG score for a specific company
-  async getESGScore(ticker: string): Promise<ESGScore> {
-    const response = await fetch(`/api/esg/${ticker}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch ESG score for ${ticker}`);
+// Price History API - Connects to your Spring Boot backend
+export const priceHistoryService = {
+  // Fetch historical price data for a specific coin
+  async getPriceHistory(coinId: string): Promise<PriceHistoryPoint[]> {
+    try {
+      console.log('🔍 Fetching price history for:', coinId);
+      const response = await fetch(`http://localhost:8080/api/price-history/${coinId}`);
+      
+      console.log('📡 Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch price history for ${coinId}: ${response.statusText}`);
+      }
+      
+      const rawData = await response.json();
+      console.log('📊 Raw data received:', rawData);
+      console.log('📊 Data length:', rawData.length);
+      
+      if (!Array.isArray(rawData) || rawData.length === 0) {
+        console.warn('⚠️ No data received from backend');
+        return [];
+      }
+      
+      // Transform the raw data from [[timestamp, price], ...] to PriceHistoryPoint[]
+      const transformedData = rawData.map(([timestamp, price]: [number, number]) => ({
+        timestamp,
+        price,
+        date: new Date(timestamp).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      }));
+      
+      console.log('✅ Transformed data:', transformedData.slice(0, 3)); // Show first 3 items
+      return transformedData;
+    } catch (error) {
+      console.error('❌ Error fetching price history:', error);
+      throw error;
     }
-    return response.json();
   },
 
-  // Get companies with high ESG scores
-  async getHighESGCompanies(minScore: number): Promise<ESGScore[]> {
-    const response = await fetch(`/api/esg/filter?minScore=${minScore}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch high ESG companies');
+  // Get price history with time range (uses your backend's cached data)
+  async getPriceHistoryWithRange(coinId: string, days: number = 30): Promise<PriceHistoryPoint[]> {
+    try {
+      console.log('🔍 Fetching price history with range for:', coinId, 'days:', days);
+      
+      // Your backend already fetches 90 days of data, so we'll filter on frontend
+      const response = await fetch(`http://localhost:8080/api/price-history/${coinId}`);
+      
+      console.log('📡 Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch price history for ${coinId}: ${response.statusText}`);
+      }
+      
+      const rawData = await response.json();
+      console.log('📊 Raw data received:', rawData);
+      console.log('📊 Data length:', rawData.length);
+      
+      if (!Array.isArray(rawData) || rawData.length === 0) {
+        console.warn('⚠️ No data received from backend for', coinId);
+        
+        // Try alternative coin ID if the first one failed
+        const alternativeIds = {
+          'ripple': 'xrp',
+          'xrp': 'ripple',
+          'bitcoin': 'btc',
+          'btc': 'bitcoin',
+          'ethereum': 'eth',
+          'eth': 'ethereum'
+        };
+        
+        const alternativeId = alternativeIds[coinId.toLowerCase()];
+        if (alternativeId) {
+          console.log('🔄 Trying alternative coin ID:', alternativeId);
+          return this.getPriceHistoryWithRange(alternativeId, days);
+        }
+        
+        return [];
+      }
+      
+      // Filter data based on the requested days
+      const cutoffTime = Date.now() - (days * 24 * 60 * 60 * 1000);
+      const filteredData = rawData.filter(([timestamp]: [number, number]) => timestamp >= cutoffTime);
+      
+      console.log('📊 Filtered data length:', filteredData.length);
+      
+      const transformedData = filteredData.map(([timestamp, price]: [number, number]) => ({
+        timestamp,
+        price,
+        date: new Date(timestamp).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      }));
+      
+      console.log('✅ Transformed data sample:', transformedData.slice(0, 3));
+      return transformedData;
+    } catch (error) {
+      console.error('❌ Error fetching price history with range:', error);
+      throw error;
     }
-    return response.json();
-  },
+  }
+};
 
-  // Save or update ESG score
-  async saveESGScore(esgScore: ESGScore): Promise<ESGScore> {
-    const response = await fetch(`/api/esg`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(esgScore),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to save ESG score');
-    }
-    return response.json();
-  },
-
-  // Delete ESG score
-  async deleteESGScore(ticker: string): Promise<void> {
-    const response = await fetch(`/api/esg/${ticker}`, {
-      method: 'DELETE',
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to delete ESG score for ${ticker}`);
-    }
-  },
-}; 
+ 

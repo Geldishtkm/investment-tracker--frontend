@@ -27,13 +27,19 @@ export interface Coin {
   price_change_percentage_24h?: number;
 }
 
-export interface ESGScore {
-  id?: number;
-  ticker: string;
-  companyName: string;
-  environmentalScore: number;
-  socialScore: number;
-  governanceScore: number;
-  totalScore: number;
-  lastUpdated: string;
-} 
+// New types for price history
+export interface PriceHistoryPoint {
+  timestamp: number;
+  price: number;
+  date: string;
+}
+
+export interface PriceHistoryData {
+  coinId: string;
+  coinName: string;
+  data: PriceHistoryPoint[];
+  loading: boolean;
+  error: string | null;
+}
+
+ 

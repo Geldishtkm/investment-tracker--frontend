@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Solana Request Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #333; border-radius: 5px; }
+        .success { background-color: #1e3a2e; border-color: #10b981; }
+        .error { background-color: #3a1e1e; border-color: #ef4444; }
+        .info { background-color: #1e3a3a; border-color: #06b6d4; }
+        button { padding: 10px 20px; margin: 5px; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #2563eb; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-family: monospace; }
+        .url { color: #10b981; background: #1e3a2e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        .response { color: #fbbf24; background: #3a2e1e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>🪙 Solana Request Examples</h1>
+    
+    <div class="test-section info">
+        <h3>🔍 Step 1: Coin Name Mapping</h3>
+        <p>When user inputs "Solana", "SOL", or "sol", our system maps it to:</p>
+        <div class="result">
+            <strong>Input:</strong> "Solana"<br>
+            <strong>Mapped to:</strong> "solana" (CoinGecko API ID)<br>
+            <strong>Full Name:</strong> "Solana"<br>
+            <strong>Symbol:</strong> "SOL"
+        </div>
+    </div>
+
+    <div class="test-section info">
+        <h3>💰 Step 2: Current Price Request</h3>
+        <p>Frontend → Backend → CoinGecko API</p>
+        <div class="result">
+            <strong>Frontend Request:</strong><br>
+            <div class="url">GET http://localhost:8080/api/crypto/price/solana</div>
+            
+            <strong>Backend → CoinGecko:</strong><br>
+            <div class="url">GET https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd</div>
+            
+            <strong>Expected Response:</strong><br>
+            <div class="response">{"solana":{"usd":123.45}}</div>
+        </div>
+        <button onclick="testCurrentPrice()">Test Current Price</button>
+        <div id="currentPriceResult"></div>
+    </div>
+
+    <div class="test-section info">
+        <h3>📈 Step 3: Price History Request</h3>
+        <p>For the price chart:</p>
+        <div class="result">
+            <strong>Frontend Request:</strong><br>
+            <div class="url">GET http://localhost:8080/api/price-history/solana</div>
+            
+            <strong>Backend → CoinGecko:</strong><br>
+            <div class="url">GET https://api.coingecko.com/api/v3/coins/solana/market_chart?vs_currency=usd&days=90&interval=daily</div>
+            
+            <strong>Expected Response:</strong><br>
+            <div class="response">{"prices":[[timestamp,price],[timestamp,price],...]}</div>
+        </div>
+        <button onclick="testPriceHistory()">Test Price History</button>
+        <div id="priceHistoryResult"></div>
+    </div>
+
+    <div class="test-section info">
+        <h3>🔄 Step 4: Test All Variations</h3>
+        <button onclick="testAllVariations()">Test All Solana Inputs</button>
+        <div id="variationsResult"></div>
+    </div>
+
+    <script>
+        // Our coin mapping system
+        const COIN_MAPPINGS = [
+            { id: "solana", name: "Solana", symbol: "SOL", aliases: ["sol", "solana"] }
+        ];
+
+        function findCoinId(userInput) {
+            if (!userInput) return null;
+            const input = userInput.toLowerCase().trim();
+            
+            const exactMatch = COIN_MAPPINGS.find(coin => coin.id === input);
+            if (exactMatch) return exactMatch.id;
+            
+            const symbolMatch = COIN_MAPPINGS.find(coin => coin.symbol.toLowerCase() === input);
+            if (symbolMatch) return symbolMatch.id;
+            
+            const nameMatch = COIN_MAPPINGS.find(coin => coin.name.toLowerCase() === input);
+            if (nameMatch) return nameMatch.id;
+            
+            const aliasMatch = COIN_MAPPINGS.find(coin => 
+                coin.aliases.some(alias => alias.toLowerCase() === input)
+            );
+            if (aliasMatch) return aliasMatch.id;
+            
+            const partialMatch = COIN_MAPPINGS.find(coin => 
+                coin.name.toLowerCase().includes(input) ||
+                coin.symbol.toLowerCase().includes(input) ||
+                coin.aliases.some(alias => alias.toLowerCase().includes(input))
+            );
+            
+            return partialMatch ? partialMatch.id : null;
+        }
+
+        async function testCurrentPrice() {
+            const result = document.getElementById('currentPriceResult');
+            result.innerHTML = '<div style="color: #fbbf24;">Testing...</div>';
+            
+            try {
+                // Test direct CoinGecko API
+                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <div style="color: #10b981;">
+                        <strong>✅ Success!</strong><br>
+                        <strong>Response:</strong> ${JSON.stringify(data, null, 2)}<br>
+                        <strong>Current Price:</strong> $${data.solana.usd}
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testPriceHistory() {
+            const result = document.getElementById('priceHistoryResult');
+            result.innerHTML = '<div style="color: #fbbf24;">Testing...</div>';
+            
+            try {
+                // Test direct CoinGecko API
+                const response = await fetch('https://api.coingecko.com/api/v3/coins/solana/market_chart?vs_currency=usd&days=7&interval=daily');
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <div style="color: #10b981;">
+                        <strong>✅ Success!</strong><br>
+                        <strong>Data Points:</strong> ${data.prices.length}<br>
+                        <strong>Sample Data:</strong> ${JSON.stringify(data.prices.slice(0, 3), null, 2)}
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function testAllVariations() {
+            const result = document.getElementById('variationsResult');
+            const variations = ['Solana', 'SOL', 'sol', 'sola', 'SOLANA', 'Sol'];
+            
+            let html = '<h4>Mapping Results:</h4>';
+            
+            variations.forEach(input => {
+                const coinId = findCoinId(input);
+                if (coinId) {
+                    html += `
+                        <div style="color: #10b981; margin: 5px 0;">
+                            ✅ "${input}" → "${coinId}"
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div style="color: #ef4444; margin: 5px 0;">
+                            ❌ "${input}" → Not found
+                        </div>
+                    `;
+                }
+            });
+            
+            result.innerHTML = html;
+        }
+    </script>
+</body>
+</html> 

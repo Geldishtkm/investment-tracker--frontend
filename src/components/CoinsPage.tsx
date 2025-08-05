@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ArrowLeft, Loader2, Coins, Plus } from 'lucide-react';
+import { Search, ArrowLeft, Loader2, Coins, Plus, TrendingUp } from 'lucide-react';
 import { Coin, Asset } from '../types';
 import { assetService } from '../services/api';
 import Toast from './Toast';
+import PriceHistoryChart from './PriceHistoryChart';
 
 interface CoinsPageProps {
   onBack: () => void;
@@ -27,6 +28,7 @@ const CoinsPage: React.FC<CoinsPageProps> = ({ onBack, onAssetAdded }) => {
     type: 'success',
     isVisible: false
   });
+  const [selectedCoinForChart, setSelectedCoinForChart] = useState<Coin | null>(null);
 
   // Fetch top 300 coins from backend
   const fetchCoins = async () => {
@@ -79,6 +81,14 @@ const CoinsPage: React.FC<CoinsPageProps> = ({ onBack, onAssetAdded }) => {
 
   const closeToast = () => {
     setToast(prev => ({ ...prev, isVisible: false }));
+  };
+
+  const handleViewPriceHistory = (coin: Coin) => {
+    setSelectedCoinForChart(coin);
+  };
+
+  const handleClosePriceHistory = () => {
+    setSelectedCoinForChart(null);
   };
 
   const handleAddToPortfolio = async (coin: Coin) => {
@@ -303,6 +313,14 @@ const CoinsPage: React.FC<CoinsPageProps> = ({ onBack, onAssetAdded }) => {
                   </div>
                   
                   <button
+                    onClick={() => handleViewPriceHistory(coin)}
+                    className="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg shadow-md border border-blue-400/20 flex items-center gap-2"
+                  >
+                    <TrendingUp size={16} />
+                    Chart
+                  </button>
+                  
+                  <button
                     onClick={() => handleAddToPortfolio(coin)}
                     className="px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg shadow-md border border-green-400/20 whitespace-nowrap"
                   >
@@ -377,6 +395,14 @@ const CoinsPage: React.FC<CoinsPageProps> = ({ onBack, onAssetAdded }) => {
           isVisible={toast.isVisible}
           onClose={closeToast}
         />
+
+        {/* Price History Chart Modal */}
+        {selectedCoinForChart && (
+          <PriceHistoryChart
+            selectedCoin={selectedCoinForChart}
+            onClose={handleClosePriceHistory}
+          />
+        )}
 
       </div>
     </div>

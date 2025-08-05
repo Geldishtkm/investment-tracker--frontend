@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend API Test - Debug Slow Loading</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        .loading { color: #007bff; }
+        .timer { font-weight: bold; color: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Backend API Test - Debug Slow Loading Issue</h1>
+    
+    <div class="test-section warning">
+        <h3>🚨 Problem: Charts loading slowly and not showing data</h3>
+        <p>Let's debug this step by step:</p>
+        <ol>
+            <li>Test if backend is responding</li>
+            <li>Check if data is being returned</li>
+            <li>Measure response times</li>
+            <li>Identify the bottleneck</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>🏥 Health Check (Should be instant)</h3>
+        <button onclick="testHealth()">Test Health Endpoint</button>
+        <div id="health-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>⏱️ Response Time Tests</h3>
+        <button onclick="testResponseTime('bitcoin')">Test Bitcoin (Measure Time)</button>
+        <button onclick="testResponseTime('ripple')">Test Ripple (Measure Time)</button>
+        <button onclick="testResponseTime('ethereum')">Test Ethereum (Measure Time)</button>
+        <div id="time-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 Data Quality Tests</h3>
+        <button onclick="testDataQuality('bitcoin')">Check Bitcoin Data</button>
+        <button onclick="testDataQuality('ripple')">Check Ripple Data</button>
+        <div id="quality-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔍 Debug Tests</h3>
+        <button onclick="testDebug('bitcoin')">Debug Bitcoin</button>
+        <button onclick="testDebug('ripple')">Debug Ripple</button>
+        <div id="debug-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔄 Force Refresh Tests</h3>
+        <button onclick="testRefresh('bitcoin')">Force Refresh Bitcoin</button>
+        <button onclick="testRefresh('ripple')">Force Refresh Ripple</button>
+        <div id="refresh-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📈 Service Status</h3>
+        <button onclick="testServiceStatus()">Get Service Status</button>
+        <div id="status-result"></div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:8080/api/price-history';
+
+        async function testHealth() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.innerHTML = '<p class="loading">Testing...</p>';
+            
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch(`${BASE_URL}/health`);
+                const data = await response.json();
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>✅ Health Check Passed</h4>
+                        <p class="timer">Response time: ${duration}ms</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Health Check Failed</h4>
+                        <p>Error: ${error.message}</p>
+                        <p>Make sure your Spring Boot backend is running on port 8080</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testResponseTime(coinId) {
+            const resultDiv = document.getElementById('time-result');
+            resultDiv.innerHTML = `<p class="loading">Testing ${coinId} response time...</p>`;
+            
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch(`${BASE_URL}/${coinId}`);
+                const data = await response.json();
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                if (Array.isArray(data) && data.length > 0) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ ${coinId} Response Time Test</h4>
+                            <p class="timer">Response time: ${duration}ms</p>
+                            <p>Received ${data.length} data points</p>
+                            <p>First data point: [${data[0][0]}, ${data[0][1]}]</p>
+                            <p>Last data point: [${data[data.length-1][0]}, ${data[data.length-1][1]}]</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>⚠️ ${coinId} Response Time Test - No Data</h4>
+                            <p class="timer">Response time: ${duration}ms</p>
+                            <p>Received empty array or no data</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ ${coinId} Response Time Test Failed</h4>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testDataQuality(coinId) {
+            const resultDiv = document.getElementById('quality-result');
+            resultDiv.innerHTML = `<p class="loading">Checking ${coinId} data quality...</p>`;
+            
+            try {
+                const response = await fetch(`${BASE_URL}/${coinId}`);
+                const data = await response.json();
+                
+                if (Array.isArray(data) && data.length > 0) {
+                    // Check data quality
+                    const firstPoint = data[0];
+                    const lastPoint = data[data.length - 1];
+                    const hasValidTimestamps = data.every(point => point[0] > 1000000000000); // Unix timestamp check
+                    const hasValidPrices = data.every(point => point[1] > 0);
+                    
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ ${coinId} Data Quality Check</h4>
+                            <p>Total data points: ${data.length}</p>
+                            <p>Valid timestamps: ${hasValidTimestamps ? '✅' : '❌'}</p>
+                            <p>Valid prices: ${hasValidPrices ? '✅' : '❌'}</p>
+                            <p>Date range: ${new Date(firstPoint[0]).toLocaleDateString()} to ${new Date(lastPoint[0]).toLocaleDateString()}</p>
+                            <p>Price range: $${Math.min(...data.map(p => p[1])).toFixed(6)} to $${Math.max(...data.map(p => p[1])).toFixed(6)}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ ${coinId} Data Quality Check - No Data</h4>
+                            <p>Received empty array or invalid data</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ ${coinId} Data Quality Check Failed</h4>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testDebug(coinId) {
+            const resultDiv = document.getElementById('debug-result');
+            resultDiv.innerHTML = `<p class="loading">Debugging ${coinId}...</p>`;
+            
+            try {
+                const response = await fetch(`${BASE_URL}/debug/${coinId}`);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="info">
+                        <h4>🔍 ${coinId} Debug Info</h4>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ ${coinId} Debug Failed</h4>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testRefresh(coinId) {
+            const resultDiv = document.getElementById('refresh-result');
+            resultDiv.innerHTML = `<p class="loading">Refreshing ${coinId}...</p>`;
+            
+            try {
+                const response = await fetch(`${BASE_URL}/refresh/${coinId}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>✅ ${coinId} Refresh Success</h4>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ ${coinId} Refresh Failed</h4>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testServiceStatus() {
+            const resultDiv = document.getElementById('status-result');
+            resultDiv.innerHTML = '<p class="loading">Getting service status...</p>';
+            
+            try {
+                const response = await fetch(`${BASE_URL}/status`);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="info">
+                        <h4>📈 Service Status</h4>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Service Status Failed</h4>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-test health on page load
+        window.onload = function() {
+            testHealth();
+        };
+    </script>
+</body>
+</html> 

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Coin Mapping Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #333; border-radius: 5px; }
+        .success { background-color: #1e3a2e; border-color: #10b981; }
+        .error { background-color: #3a1e1e; border-color: #ef4444; }
+        .info { background-color: #1e3a3a; border-color: #06b6d4; }
+        input { padding: 10px; margin: 5px; background: #333; border: 1px solid #555; color: white; border-radius: 3px; }
+        button { padding: 10px 20px; margin: 5px; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #2563eb; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🪙 Coin Mapping Test</h1>
+    
+    <div class="test-section info">
+        <h3>🧪 Test Coin Name Mapping</h3>
+        <input type="text" id="coinInput" placeholder="Enter coin name (e.g., Bitcoin, BTC, btc, etc.)" style="width: 300px;">
+        <button onclick="testCoinMapping()">Test Mapping</button>
+        <div id="mappingResult" class="result"></div>
+    </div>
+
+    <div class="test-section info">
+        <h3>📋 Test Multiple Inputs</h3>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <div id="allResults"></div>
+    </div>
+
+    <script>
+        // Simplified version of our coin mapping system
+        const COIN_MAPPINGS = [
+            { id: "bitcoin", name: "Bitcoin", symbol: "BTC", aliases: ["btc", "bitcoin", "xbt"] },
+            { id: "ethereum", name: "Ethereum", symbol: "ETH", aliases: ["eth", "ethereum", "ether"] },
+            { id: "solana", name: "Solana", symbol: "SOL", aliases: ["sol", "solana"] },
+            { id: "cardano", name: "Cardano", symbol: "ADA", aliases: ["ada", "cardano"] },
+            { id: "polkadot", name: "Polkadot", symbol: "DOT", aliases: ["dot", "polkadot"] },
+            { id: "ripple", name: "Ripple", symbol: "XRP", aliases: ["xrp", "ripple"] },
+            { id: "binancecoin", name: "BNB", symbol: "BNB", aliases: ["bnb", "binance", "binance coin"] },
+            { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", aliases: ["doge", "dogecoin"] },
+            { id: "avalanche-2", name: "Avalanche", symbol: "AVAX", aliases: ["avax", "avalanche"] },
+            { id: "chainlink", name: "Chainlink", symbol: "LINK", aliases: ["link", "chainlink"] }
+        ];
+
+        function findCoinId(userInput) {
+            if (!userInput) return null;
+            
+            const input = userInput.toLowerCase().trim();
+            
+            // Exact matches
+            const exactMatch = COIN_MAPPINGS.find(coin => coin.id === input);
+            if (exactMatch) return exactMatch.id;
+            
+            const symbolMatch = COIN_MAPPINGS.find(coin => coin.symbol.toLowerCase() === input);
+            if (symbolMatch) return symbolMatch.id;
+            
+            const nameMatch = COIN_MAPPINGS.find(coin => coin.name.toLowerCase() === input);
+            if (nameMatch) return nameMatch.id;
+            
+            const aliasMatch = COIN_MAPPINGS.find(coin => 
+                coin.aliases.some(alias => alias.toLowerCase() === input)
+            );
+            if (aliasMatch) return aliasMatch.id;
+            
+            // Partial matches
+            const partialMatch = COIN_MAPPINGS.find(coin => 
+                coin.name.toLowerCase().includes(input) ||
+                coin.symbol.toLowerCase().includes(input) ||
+                coin.aliases.some(alias => alias.toLowerCase().includes(input))
+            );
+            
+            return partialMatch ? partialMatch.id : null;
+        }
+
+        function getCoinInfo(coinId) {
+            return COIN_MAPPINGS.find(coin => coin.id === coinId) || null;
+        }
+
+        function testCoinMapping() {
+            const input = document.getElementById('coinInput').value;
+            const result = document.getElementById('mappingResult');
+            
+            if (!input.trim()) {
+                result.innerHTML = '<span style="color: #ef4444;">Please enter a coin name</span>';
+                return;
+            }
+            
+            const coinId = findCoinId(input);
+            const coinInfo = coinId ? getCoinInfo(coinId) : null;
+            
+            if (coinInfo) {
+                result.innerHTML = `
+                    <div style="color: #10b981;">
+                        <strong>✅ Found!</strong><br>
+                        Input: "${input}"<br>
+                        CoinGecko ID: "${coinInfo.id}"<br>
+                        Full Name: "${coinInfo.name}"<br>
+                        Symbol: "${coinInfo.symbol}"<br>
+                        Aliases: ${coinInfo.aliases.join(', ')}
+                    </div>
+                `;
+            } else {
+                result.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Not Found</strong><br>
+                        Input: "${input}"<br>
+                        No matching coin found in our database.
+                    </div>
+                `;
+            }
+        }
+
+        function runAllTests() {
+            const results = document.getElementById('allResults');
+            const testInputs = [
+                'bitcoin', 'BTC', 'btc', 'Bitcoin',
+                'ethereum', 'ETH', 'eth', 'Ethereum',
+                'solana', 'SOL', 'sol', 'Solana',
+                'ripple', 'XRP', 'xrp', 'Ripple',
+                'binance', 'BNB', 'bnb', 'binance coin',
+                'dogecoin', 'DOGE', 'doge', 'Dogecoin',
+                'avalanche', 'AVAX', 'avax', 'Avalanche',
+                'chainlink', 'LINK', 'link', 'Chainlink',
+                'invalid', 'xyz', 'random'
+            ];
+            
+            let html = '<h4>Test Results:</h4>';
+            
+            testInputs.forEach(input => {
+                const coinId = findCoinId(input);
+                const coinInfo = coinId ? getCoinInfo(coinId) : null;
+                
+                if (coinInfo) {
+                    html += `
+                        <div style="color: #10b981; margin: 5px 0;">
+                            ✅ "${input}" → "${coinInfo.id}" (${coinInfo.name})
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div style="color: #ef4444; margin: 5px 0;">
+                            ❌ "${input}" → Not found
+                        </div>
+                    `;
+                }
+            });
+            
+            results.innerHTML = html;
+        }
+
+        // Allow Enter key to test
+        document.getElementById('coinInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                testCoinMapping();
+            }
+        });
+    </script>
+</body>
+</html> 

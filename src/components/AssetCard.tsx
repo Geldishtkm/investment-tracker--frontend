@@ -3,6 +3,7 @@ import { TrendingUp, DollarSign, Package, Edit, Trash2, MoreVertical, X, Check, 
 import { Asset, AssetWithPrice } from '../types';
 import { assetService } from '../services/api';
 import ConfirmModal from './ConfirmModal';
+import { findCoinId, isCryptoAsset, getCoinInfo } from '../utils/coinMapping';
 
 interface AssetCardProps {
   asset: Asset;
@@ -39,7 +40,7 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
 
   const fetchCoinImage = async () => {
     try {
-      const coinId = getCoinId(asset.name);
+      const coinId = findCoinId(asset.name);
       if (coinId) {
         const coinsData = await assetService.getTopCoins();
         const coin = coinsData.find(c => c.id === coinId);
@@ -52,15 +53,10 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
     }
   };
 
-  const isCryptoAsset = (name: string): boolean => {
-    const cryptoKeywords = ['bitcoin', 'btc', 'ethereum', 'eth', 'solana', 'sol', 'cardano', 'ada', 'polkadot', 'dot'];
-    return cryptoKeywords.some(keyword => name.toLowerCase().includes(keyword));
-  };
-
   const fetchCurrentPrice = async () => {
     try {
       setIsUpdatingPrice(true);
-      const coinId = getCoinId(asset.name);
+      const coinId = findCoinId(asset.name);
       if (coinId) {
         const price = await assetService.getCryptoPrice(coinId);
         setCurrentPrice(price);
@@ -71,16 +67,6 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onUpdate, onDelete }) => {
     } finally {
       setIsUpdatingPrice(false);
     }
-  };
-
-  const getCoinId = (name: string): string | null => {
-    const nameLower = name.toLowerCase();
-    if (nameLower.includes('bitcoin') || nameLower.includes('btc')) return 'bitcoin';
-    if (nameLower.includes('ethereum') || nameLower.includes('eth')) return 'ethereum';
-    if (nameLower.includes('solana') || nameLower.includes('sol')) return 'solana';
-    if (nameLower.includes('cardano') || nameLower.includes('ada')) return 'cardano';
-    if (nameLower.includes('polkadot') || nameLower.includes('dot')) return 'polkadot';
-    return null;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
