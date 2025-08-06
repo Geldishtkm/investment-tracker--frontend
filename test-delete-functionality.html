@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Functionality Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #333; border-radius: 5px; }
+        .success { background-color: #1e3a2e; border-color: #10b981; }
+        .error { background-color: #3a1e1e; border-color: #ef4444; }
+        .info { background-color: #1e3a3a; border-color: #06b6d4; }
+        button { padding: 10px 20px; margin: 5px; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #2563eb; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-family: monospace; }
+        .url { color: #10b981; background: #1e3a2e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        .response { color: #fbbf24; background: #3a2e1e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <h1>🗑️ Delete Functionality Test</h1>
+    
+    <div class="test-section info">
+        <h3>🔍 What Was Fixed</h3>
+        <div class="result">
+            <strong>1. Interface Mismatch:</strong><br>
+            • AssetCard expected: <code>onDelete: (id: number) => void</code><br>
+            • App.tsx provided: <code>handleDeleteAsset: (id: number, assetName: string) => void</code><br>
+            • <span class="success">✅ Fixed: Updated AssetCard interface</span><br><br>
+            
+            <strong>2. Missing Props:</strong><br>
+            • AssetCard was missing <code>onShowToast</code> prop<br>
+            • <span class="success">✅ Fixed: Added onShowToast to interface and component</span><br><br>
+            
+            <strong>3. Function Calls:</strong><br>
+            • <code>onDelete(asset.id)</code> → <code>onDelete(asset.id, asset.name)</code><br>
+            • <span class="success">✅ Fixed: Updated function calls</span><br><br>
+            
+            <strong>4. Error Handling:</strong><br>
+            • Replaced <code>alert()</code> with <code>onShowToast()</code><br>
+            • <span class="success">✅ Fixed: Better error handling with toast notifications</span>
+        </div>
+    </div>
+
+    <div class="test-section info">
+        <h3>🧪 Test Delete API Endpoint</h3>
+        <button onclick="testDeleteEndpoint()">Test DELETE /api/assets/{id}</button>
+        <div id="deleteResult"></div>
+    </div>
+
+    <div class="test-section info">
+        <h3>📋 Test Current Assets</h3>
+        <button onclick="testGetAssets()">Get All Assets</button>
+        <div id="assetsResult"></div>
+    </div>
+
+    <div class="test-section success">
+        <h3>✅ How Delete Works Now</h3>
+        <div class="result">
+            <strong>1. User clicks delete button</strong><br>
+            <div class="url">AssetCard.handleDelete() → setShowDeleteConfirm(true)</div><br>
+            
+            <strong>2. ConfirmModal appears</strong><br>
+            <div class="url">"Are you sure you want to delete [asset name]?"</div><br>
+            
+            <strong>3. User confirms deletion</strong><br>
+            <div class="url">AssetCard.confirmDelete() → assetService.deleteAsset(asset.id)</div><br>
+            
+            <strong>4. Backend deletes asset</strong><br>
+            <div class="url">DELETE /api/assets/{id} → AssetController.deleteAsset()</div><br>
+            
+            <strong>5. Frontend updates</strong><br>
+            <div class="url">onDelete(asset.id, asset.name) → App.handleDeleteAsset() → loadAssets()</div><br>
+            
+            <strong>6. Success notification</strong><br>
+            <div class="url">onShowToast('success', '[asset name] deleted successfully!')</div>
+        </div>
+    </div>
+
+    <script>
+        async function testDeleteEndpoint() {
+            const result = document.getElementById('deleteResult');
+            result.innerHTML = '<div style="color: #fbbf24;">Testing delete endpoint...</div>';
+            
+            try {
+                // First get all assets to find an ID to test with
+                const assetsResponse = await fetch('http://localhost:8080/api/assets');
+                if (!assetsResponse.ok) {
+                    throw new Error('Failed to fetch assets');
+                }
+                
+                const assets = await assetsResponse.json();
+                if (assets.length === 0) {
+                    result.innerHTML = '<div style="color: #ef4444;">❌ No assets found to test deletion</div>';
+                    return;
+                }
+                
+                const testAsset = assets[0];
+                result.innerHTML = `<div style="color: #fbbf24;">Testing deletion of asset: ${testAsset.name} (ID: ${testAsset.id})</div>`;
+                
+                // Test the delete endpoint
+                const deleteResponse = await fetch(`http://localhost:8080/api/assets/${testAsset.id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (deleteResponse.ok) {
+                    result.innerHTML = `
+                        <div style="color: #10b981;">
+                            <strong>✅ Delete Success!</strong><br>
+                            Asset "${testAsset.name}" (ID: ${testAsset.id}) was deleted successfully<br>
+                            Status: ${deleteResponse.status} ${deleteResponse.statusText}
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div style="color: #ef4444;">
+                            <strong>❌ Delete Failed!</strong><br>
+                            Status: ${deleteResponse.status} ${deleteResponse.statusText}<br>
+                            Asset: ${testAsset.name} (ID: ${testAsset.id})
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Error:</strong> ${error.message}<br>
+                        Make sure your Spring Boot backend is running on port 8080
+                    </div>
+                `;
+            }
+        }
+
+        async function testGetAssets() {
+            const result = document.getElementById('assetsResult');
+            result.innerHTML = '<div style="color: #fbbf24;">Fetching assets...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/assets');
+                if (response.ok) {
+                    const assets = await response.json();
+                    result.innerHTML = `
+                        <div style="color: #10b981;">
+                            <strong>✅ Assets Found: ${assets.length}</strong><br>
+                            <pre class="response">${JSON.stringify(assets, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div style="color: #ef4444;">
+                            <strong>❌ Failed to fetch assets:</strong> ${response.status} ${response.statusText}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Error:</strong> ${error.message}<br>
+                        Make sure your Spring Boot backend is running on port 8080
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run tests on page load
+        window.onload = function() {
+            setTimeout(() => {
+                testGetAssets();
+            }, 1000);
+        };
+    </script>
+</body>
+</html> 

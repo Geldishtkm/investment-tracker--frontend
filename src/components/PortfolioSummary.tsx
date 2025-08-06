@@ -1,14 +1,17 @@
 import React from 'react';
 import { DollarSign, TrendingUp, Package, BarChart3, Target, Activity } from 'lucide-react';
-import { Asset } from '../types';
+import { Asset, AssetWithPrice } from '../types';
 
 interface PortfolioSummaryProps {
-  totalValue: number;
-  assets: Asset[];
+  assets: AssetWithPrice[];
 }
 
-const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({ totalValue, assets }) => {
+const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({ assets }) => {
   const assetCount = assets.length;
+  const totalValue = assets.reduce((sum, asset) => {
+    const currentPrice = asset.currentPrice || asset.pricePerUnit;
+    return sum + (asset.quantity * currentPrice);
+  }, 0);
   const averageValue = assetCount > 0 ? totalValue / assetCount : 0;
   
   // Calculate additional statistics

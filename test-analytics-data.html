@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analytics Data Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #333; border-radius: 5px; }
+        .success { background-color: #1e3a2e; border-color: #10b981; }
+        .error { background-color: #3a1e1e; border-color: #ef4444; }
+        .info { background-color: #1e3a3a; border-color: #06b6d4; }
+        button { padding: 10px 20px; margin: 5px; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #2563eb; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-family: monospace; }
+        .url { color: #10b981; background: #1e3a2e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        .response { color: #fbbf24; background: #3a2e1e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+        .data-point { display: inline-block; margin: 10px; padding: 10px; background: #2a2a2a; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>📊 Analytics Data Test</h1>
+    
+    <div class="test-section info">
+        <h3>🔄 How Analytics Page Now Works</h3>
+        <div class="result">
+            <strong>1. Try Backend Analytics Endpoints First:</strong><br>
+            <div class="url">GET http://localhost:8080/api/assets/metrics</div>
+            <div class="url">GET http://localhost:8080/api/assets/roi</div>
+            <div class="url">GET http://localhost:8080/api/assets/sharpe</div>
+            <div class="url">GET http://localhost:8080/api/assets/performance</div>
+            <div class="url">GET http://localhost:8080/api/assets/risk</div>
+            
+            <strong>2. If Backend Endpoints Available:</strong><br>
+            <span class="success">✅ Use real backend data</span><br>
+            
+            <strong>3. If Backend Endpoints Not Available:</strong><br>
+            <span class="info">🔄 Fallback to calculated data from existing assets</span><br>
+            <span class="info">🔄 Still try to get ROI and Sharpe ratio from backend</span>
+        </div>
+    </div>
+
+    <div class="test-section info">
+        <h3>🧪 Test Backend Analytics Endpoints</h3>
+        <button onclick="testBackendAnalytics()">Test All Analytics Endpoints</button>
+        <div id="analyticsResult"></div>
+    </div>
+
+    <div class="test-section info">
+        <h3>📈 Test Individual Endpoints</h3>
+        <button onclick="testROI()">Test ROI</button>
+        <button onclick="testSharpe()">Test Sharpe Ratio</button>
+        <button onclick="testTotalValue()">Test Total Value</button>
+        <button onclick="testAssetsWithPrices()">Test Assets with Prices</button>
+        <div id="individualResult"></div>
+    </div>
+
+    <div class="test-section success">
+        <h3>✅ What's Fixed</h3>
+        <div class="result">
+            <strong>Before:</strong> Only placeholder data<br>
+            <strong>Now:</strong> Real data from your backend!<br><br>
+            
+            <strong>Data Sources:</strong><br>
+            • <span class="success">Portfolio Value</span> - From `/api/assets/total`<br>
+            • <span class="success">ROI</span> - From `/api/assets/roi`<br>
+            • <span class="success">Sharpe Ratio</span> - From `/api/assets/sharpe`<br>
+            • <span class="success">Asset Performance</span> - From `/api/assets/performance`<br>
+            • <span class="success">Risk Metrics</span> - From `/api/assets/risk`<br>
+            • <span class="success">Real-time Prices</span> - From `/api/assets/with-prices`<br>
+        </div>
+    </div>
+
+    <script>
+        async function testBackendAnalytics() {
+            const result = document.getElementById('analyticsResult');
+            result.innerHTML = '<div style="color: #fbbf24;">Testing all analytics endpoints...</div>';
+            
+            const endpoints = [
+                { name: 'Portfolio Metrics', url: '/api/assets/metrics' },
+                { name: 'ROI', url: '/api/assets/roi' },
+                { name: 'Sharpe Ratio', url: '/api/assets/sharpe' },
+                { name: 'Asset Performance', url: '/api/assets/performance' },
+                { name: 'Risk Metrics', url: '/api/assets/risk' }
+            ];
+            
+            let results = [];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(`http://localhost:8080${endpoint.url}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        results.push(`<span class="success">✅ ${endpoint.name}: ${JSON.stringify(data).substring(0, 100)}...</span>`);
+                    } else {
+                        results.push(`<span class="error">❌ ${endpoint.name}: ${response.status} ${response.statusText}</span>`);
+                    }
+                } catch (error) {
+                    results.push(`<span class="error">❌ ${endpoint.name}: ${error.message}</span>`);
+                }
+            }
+            
+            result.innerHTML = results.join('<br>');
+        }
+
+        async function testROI() {
+            const result = document.getElementById('individualResult');
+            result.innerHTML = '<div style="color: #fbbf24;">Testing ROI...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/assets/roi');
+                if (response.ok) {
+                    const roi = await response.json();
+                    result.innerHTML = `
+                        <div class="success">
+                            <strong>✅ ROI Success!</strong><br>
+                            <div class="data-point">ROI: ${(roi * 100).toFixed(2)}%</div>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `<div class="error">❌ ROI Error: ${response.status} ${response.statusText}</div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ ROI Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testSharpe() {
+            const result = document.getElementById('individualResult');
+            result.innerHTML = '<div style="color: #fbbf24;">Testing Sharpe Ratio...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/assets/sharpe');
+                if (response.ok) {
+                    const sharpe = await response.json();
+                    result.innerHTML = `
+                        <div class="success">
+                            <strong>✅ Sharpe Ratio Success!</strong><br>
+                            <div class="data-point">Sharpe Ratio: ${sharpe.toFixed(3)}</div>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `<div class="error">❌ Sharpe Error: ${response.status} ${response.statusText}</div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Sharpe Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testTotalValue() {
+            const result = document.getElementById('individualResult');
+            result.innerHTML = '<div style="color: #fbbf24;">Testing Total Value...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/assets/total');
+                if (response.ok) {
+                    const total = await response.json();
+                    result.innerHTML = `
+                        <div class="success">
+                            <strong>✅ Total Value Success!</strong><br>
+                            <div class="data-point">Total: $${total.toLocaleString()}</div>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `<div class="error">❌ Total Value Error: ${response.status} ${response.statusText}</div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Total Value Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testAssetsWithPrices() {
+            const result = document.getElementById('individualResult');
+            result.innerHTML = '<div style="color: #fbbf24;">Testing Assets with Prices...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/assets/with-prices');
+                if (response.ok) {
+                    const assets = await response.json();
+                    result.innerHTML = `
+                        <div class="success">
+                            <strong>✅ Assets with Prices Success!</strong><br>
+                            <div class="data-point">Assets: ${assets.length}</div>
+                            <pre class="response">${JSON.stringify(assets, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `<div class="error">❌ Assets with Prices Error: ${response.status} ${response.statusText}</div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Assets with Prices Error: ${error.message}</div>`;
+            }
+        }
+
+        // Auto-run tests on page load
+        window.onload = function() {
+            setTimeout(() => {
+                testBackendAnalytics();
+            }, 1000);
+        };
+    </script>
+</body>
+</html> 

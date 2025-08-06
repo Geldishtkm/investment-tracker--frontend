@@ -3,12 +3,16 @@ export interface Asset {
   name: string;
   quantity: number;
   pricePerUnit: number;
+  purchasePricePerUnit: number;
+  initialInvestment: number;
 }
 
 export interface AssetFormData {
   name: string;
   quantity: string;
   pricePerUnit: string;
+  purchasePricePerUnit: string;
+  initialInvestment: string;
 }
 
 export interface ApiResponse<T> {
@@ -33,10 +37,49 @@ export interface Coin {
   id: string;
   symbol: string;
   name: string;
-  image?: string;
-  current_price?: number;
-  price_change_24h?: number;
-  price_change_percentage_24h?: number;
-  market_cap?: number;
-  market_cap_rank?: number;
+  image: string;
+  current_price: number;
+  market_cap: number;
+  price_change_percentage_24h: number;
+}
+
+export interface PriceHistoryPoint {
+  timestamp: number;
+  price: number;
+}
+
+export interface PriceHistoryData {
+  coinId: string;
+  data: PriceHistoryPoint[];
+}
+
+// New Portfolio Analytics Types
+export interface PortfolioMetrics {
+  totalValue: number;
+  totalInvestment: number;
+  roi: number;
+  roiPercentage: number;
+  sharpeRatio: number;
+  volatility: number;
+  assetCount: number;
+  topPerformer: string;
+  worstPerformer: string;
+}
+
+export interface AssetPerformance {
+  id: number;
+  name: string;
+  currentValue: number;
+  initialInvestment: number;
+  roi: number;
+  roiPercentage: number;
+  weight: number; // Portfolio weight percentage
+}
+
+export interface RiskMetrics {
+  sharpeRatio: number;
+  volatility: number;
+  maxDrawdown: number;
+  beta: number;
+  diversificationScore: number;
 } 

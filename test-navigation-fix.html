@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Navigation Fix Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #333; border-radius: 5px; }
+        .success { background-color: #1e3a2e; border-color: #10b981; }
+        .error { background-color: #3a1e1e; border-color: #ef4444; }
+        .info { background-color: #1e3a3a; border-color: #06b6d4; }
+        button { padding: 10px 20px; margin: 5px; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #2563eb; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-family: monospace; }
+        .url { color: #10b981; background: #1e3a2e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        .response { color: #fbbf24; background: #3a2e1e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Navigation Fix Test</h1>
+    
+    <div class="test-section success">
+        <h3>✅ Issues Fixed</h3>
+        <div class="result">
+            <strong>1. Back to Portfolio Button:</strong><br>
+            • <span class="success">✅ Fixed: Added missing onBack prop to CoinsPage</span><br>
+            • <span class="success">✅ Fixed: onBack={() => setCurrentPage('portfolio')}</span><br><br>
+            
+            <strong>2. Port Configuration:</strong><br>
+            • <span class="success">✅ Fixed: Frontend now runs on port 5173 (not 5174)</span><br>
+            • <span class="success">✅ Fixed: Vite proxy configured correctly</span><br><br>
+            
+            <strong>3. Type Mismatches:</strong><br>
+            • <span class="success">✅ Fixed: AssetCard onUpdate prop signature</span><br>
+            • <span class="success">✅ Fixed: CoinsPage onAssetAdded prop signature</span><br>
+            • <span class="success">✅ Fixed: Toast component supports 'info' type</span><br><br>
+            
+            <strong>4. Backend Connection:</strong><br>
+            • <span class="success">✅ Fixed: API calls use relative URLs for proxy</span><br>
+            • <span class="success">✅ Fixed: CORS should work with port 5173</span>
+        </div>
+    </div>
+
+    <div class="test-section info">
+        <h3>🧪 Test Navigation & Backend</h3>
+        <button onclick="testBackendConnection()">Test Backend Connection</button>
+        <button onclick="testAddAsset()">Test Add Asset</button>
+        <button onclick="testNavigation()">Test Navigation Flow</button>
+        <div id="testResults"></div>
+    </div>
+
+    <div class="test-section info">
+        <h3>🎯 How to Test</h3>
+        <div class="result">
+            <strong>1. Start Backend:</strong><br>
+            <div class="url">Make sure Spring Boot is running on port 8080</div><br>
+            
+            <strong>2. Start Frontend:</strong><br>
+            <div class="url">npm run dev (should run on port 5173)</div><br>
+            
+            <strong>3. Test Navigation:</strong><br>
+            <div class="url">• Click "🪙 Top Coins" → Should show coins page</div>
+            <div class="url">• Click "Back to Portfolio" → Should return to portfolio</div>
+            <div class="url">• Click "📈 Analytics" → Should show analytics</div>
+            <div class="url">• Click "📊 Portfolio" → Should return to portfolio</div><br>
+            
+            <strong>4. Test Add Asset:</strong><br>
+            <div class="url">• Go to Top Coins page</div>
+            <div class="url">• Enter quantity for a coin</div>
+            <div class="url">• Click "Add to Portfolio"</div>
+            <div class="url">• Should see success toast and asset added</div>
+        </div>
+    </div>
+
+    <script>
+        async function testBackendConnection() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div style="color: #fbbf24;">Testing backend connection...</div>';
+            
+            try {
+                const response = await fetch('/api/assets');
+                if (response.ok) {
+                    const assets = await response.json();
+                    results.innerHTML = `
+                        <div style="color: #10b981;">
+                            <strong>✅ Backend Connection Working!</strong><br>
+                            <div class="url">URL: /api/assets (proxied to http://localhost:8080)</div>
+                            <div class="response">Assets found: ${assets.length}</div>
+                            <pre>${JSON.stringify(assets, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = `
+                        <div style="color: #ef4444;">
+                            <strong>❌ Backend Connection Failed:</strong><br>
+                            <div class="url">URL: /api/assets</div>
+                            <div class="response">Status: ${response.status} ${response.statusText}</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Connection Error:</strong><br>
+                        <div class="url">URL: /api/assets</div>
+                        <div class="response">Error: ${error.message}</div>
+                        <br>
+                        <strong>Solutions:</strong><br>
+                        • Make sure backend is running on port 8080<br>
+                        • Make sure frontend is running on port 5173<br>
+                        • Check CORS configuration in backend
+                    </div>
+                `;
+            }
+        }
+
+        async function testAddAsset() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div style="color: #fbbf24;">Testing add asset functionality...</div>';
+            
+            try {
+                const testAsset = {
+                    name: "Test Bitcoin",
+                    quantity: 0.5,
+                    pricePerUnit: 50000.00
+                };
+
+                const response = await fetch('/api/assets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testAsset),
+                });
+
+                if (response.ok) {
+                    const addedAsset = await response.json();
+                    results.innerHTML = `
+                        <div style="color: #10b981;">
+                            <strong>✅ Asset Added Successfully!</strong><br>
+                            <div class="url">URL: POST /api/assets</div>
+                            <div class="response">Asset created with ID: ${addedAsset.id}</div>
+                            <pre>${JSON.stringify(addedAsset, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    results.innerHTML = `
+                        <div style="color: #ef4444;">
+                            <strong>❌ Failed to add asset:</strong><br>
+                            <div class="url">URL: POST /api/assets</div>
+                            <div class="response">Status: ${response.status} ${response.statusText}</div>
+                            <pre>${JSON.stringify(errorData, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Error adding asset:</strong><br>
+                        <div class="url">URL: POST /api/assets</div>
+                        <div class="response">Error: ${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+
+        function testNavigation() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = `
+                <div style="color: #10b981;">
+                    <strong>✅ Navigation Test Instructions:</strong><br>
+                    <div class="url">1. Open your React app at http://localhost:5173</div>
+                    <div class="url">2. Click "🪙 Top Coins" button in navigation</div>
+                    <div class="url">3. You should see the coins page with "Back to Portfolio" button</div>
+                    <div class="url">4. Click "Back to Portfolio" - should return to portfolio</div>
+                    <div class="url">5. Click "📈 Analytics" - should show analytics page</div>
+                    <div class="url">6. Click "📊 Portfolio" - should return to portfolio</div>
+                    <br>
+                    <strong>If navigation works, the fix is successful! 🎉</strong>
+                </div>
+            `;
+        }
+
+        // Auto-run backend test on page load
+        window.onload = function() {
+            setTimeout(() => {
+                testBackendConnection();
+            }, 1000);
+        };
+    </script>
+</body>
+</html> 

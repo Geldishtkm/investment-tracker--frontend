@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Backend Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #333; border-radius: 5px; }
+        .success { background-color: #1e3a2e; border-color: #10b981; }
+        .error { background-color: #3a1e1e; border-color: #ef4444; }
+        .info { background-color: #1e3a3a; border-color: #06b6d4; }
+        button { padding: 10px 20px; margin: 5px; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #2563eb; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-family: monospace; }
+        .url { color: #10b981; background: #1e3a2e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        .response { color: #fbbf24; background: #3a2e1e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Backend Connection Test</h1>
+    
+    <div class="test-section info">
+        <h3>🎯 Problem Analysis</h3>
+        <div class="result">
+            <strong>Issue:</strong> Frontend making POST request to <code>http://localhost:5173/api/assets</code> instead of backend<br>
+            <strong>Expected:</strong> Request should be proxied to <code>http://localhost:8080/api/assets</code><br>
+            <strong>Possible Causes:</strong><br>
+            • Backend not running on port 8080<br>
+            • Vite proxy configuration issue<br>
+            • CORS configuration problem<br>
+            • Backend controller error
+        </div>
+    </div>
+
+    <div class="test-section info">
+        <h3>🧪 Test Backend Connection</h3>
+        <button onclick="testDirectBackend()">Test Direct Backend (Port 8080)</button>
+        <button onclick="testProxyBackend()">Test Proxy Backend (Port 5173)</button>
+        <button onclick="testAddAsset()">Test Add Asset</button>
+        <div id="testResults"></div>
+    </div>
+
+    <div class="test-section info">
+        <h3>🔧 Troubleshooting Steps</h3>
+        <div class="result">
+            <strong>1. Check if backend is running:</strong><br>
+            <div class="url">Open: http://localhost:8080/api/assets</div><br>
+            
+            <strong>2. Check Vite proxy:</strong><br>
+            <div class="url">Frontend should proxy /api/* to http://localhost:8080</div><br>
+            
+            <strong>3. Check CORS configuration:</strong><br>
+            <div class="url">Backend should allow origin: http://localhost:5173</div><br>
+            
+            <strong>4. Check controller implementation:</strong><br>
+            <div class="url">Make sure AssetController.addAsset() method exists and works</div>
+        </div>
+    </div>
+
+    <script>
+        async function testDirectBackend() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div style="color: #fbbf24;">Testing direct backend connection...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/assets');
+                if (response.ok) {
+                    const assets = await response.json();
+                    results.innerHTML = `
+                        <div style="color: #10b981;">
+                            <strong>✅ Backend is accessible directly!</strong><br>
+                            <div class="url">URL: http://localhost:8080/api/assets</div>
+                            <div class="response">Assets found: ${assets.length}</div>
+                            <pre>${JSON.stringify(assets, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = `
+                        <div style="color: #ef4444;">
+                            <strong>❌ Backend responded with error:</strong><br>
+                            <div class="url">URL: http://localhost:8080/api/assets</div>
+                            <div class="response">Status: ${response.status} ${response.statusText}</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Cannot connect to backend:</strong><br>
+                        <div class="url">URL: http://localhost:8080/api/assets</div>
+                        <div class="response">Error: ${error.message}</div>
+                        <br>
+                        <strong>Solution:</strong> Start your Spring Boot backend on port 8080
+                    </div>
+                `;
+            }
+        }
+
+        async function testProxyBackend() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div style="color: #fbbf24;">Testing proxy backend connection...</div>';
+            
+            try {
+                const response = await fetch('/api/assets');
+                if (response.ok) {
+                    const assets = await response.json();
+                    results.innerHTML = `
+                        <div style="color: #10b981;">
+                            <strong>✅ Proxy is working!</strong><br>
+                            <div class="url">URL: /api/assets (proxied to http://localhost:8080)</div>
+                            <div class="response">Assets found: ${assets.length}</div>
+                            <pre>${JSON.stringify(assets, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = `
+                        <div style="color: #ef4444;">
+                            <strong>❌ Proxy failed:</strong><br>
+                            <div class="url">URL: /api/assets</div>
+                            <div class="response">Status: ${response.status} ${response.statusText}</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Proxy connection failed:</strong><br>
+                        <div class="url">URL: /api/assets</div>
+                        <div class="response">Error: ${error.message}</div>
+                        <br>
+                        <strong>Solution:</strong> Check Vite proxy configuration in vite.config.ts
+                    </div>
+                `;
+            }
+        }
+
+        async function testAddAsset() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div style="color: #fbbf24;">Testing add asset functionality...</div>';
+            
+            try {
+                const testAsset = {
+                    name: "Test Bitcoin",
+                    quantity: 0.5,
+                    pricePerUnit: 50000.00
+                };
+
+                const response = await fetch('/api/assets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testAsset),
+                });
+
+                if (response.ok) {
+                    const addedAsset = await response.json();
+                    results.innerHTML = `
+                        <div style="color: #10b981;">
+                            <strong>✅ Asset added successfully!</strong><br>
+                            <div class="url">URL: POST /api/assets</div>
+                            <div class="response">Asset created with ID: ${addedAsset.id}</div>
+                            <pre>${JSON.stringify(addedAsset, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    results.innerHTML = `
+                        <div style="color: #ef4444;">
+                            <strong>❌ Failed to add asset:</strong><br>
+                            <div class="url">URL: POST /api/assets</div>
+                            <div class="response">Status: ${response.status} ${response.statusText}</div>
+                            <pre>${JSON.stringify(errorData, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Error adding asset:</strong><br>
+                        <div class="url">URL: POST /api/assets</div>
+                        <div class="response">Error: ${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run tests on page load
+        window.onload = function() {
+            setTimeout(() => {
+                testDirectBackend();
+            }, 1000);
+        };
+    </script>
+</body>
+</html> 

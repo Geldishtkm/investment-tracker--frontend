@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Single Delete Fix Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #333; border-radius: 5px; }
+        .success { background-color: #1e3a2e; border-color: #10b981; }
+        .error { background-color: #3a1e1e; border-color: #ef4444; }
+        .info { background-color: #1e3a3a; border-color: #06b6d4; }
+        button { padding: 10px 20px; margin: 5px; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #2563eb; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-family: monospace; }
+        .url { color: #10b981; background: #1e3a2e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        .response { color: #fbbf24; background: #3a2e1e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Single Delete Fix Test</h1>
+    
+    <div class="test-section success">
+        <h3>✅ Issues Fixed</h3>
+        <div class="result">
+            <strong>1. Double Delete Requests:</strong><br>
+            • <span class="success">✅ Fixed: Removed assetService.deleteAsset() from AssetCard</span><br>
+            • <span class="success">✅ Fixed: AssetCard now only calls onDelete()</span><br>
+            • <span class="success">✅ Fixed: App.tsx handles the actual API call</span><br><br>
+            
+            <strong>2. UI Not Updating:</strong><br>
+            • <span class="success">✅ Fixed: App.tsx calls loadAssets() after deletion</span><br>
+            • <span class="success">✅ Fixed: Assets state is refreshed from database</span><br>
+            • <span class="success">✅ Fixed: UI should update immediately</span><br><br>
+            
+            <strong>3. Confirmation Modal:</strong><br>
+            • <span class="success">✅ Fixed: Removed ConfirmModal from AssetCard</span><br>
+            • <span class="success">✅ Fixed: Removed showDeleteConfirm state</span><br>
+            • <span class="success">✅ Fixed: Instant delete without confirmation</span>
+        </div>
+    </div>
+
+    <div class="test-section info">
+        <h3>🧪 Test Single Delete</h3>
+        <button onclick="testSingleDelete()">Test Single Delete Request</button>
+        <button onclick="testUIUpdate()">Test UI Update After Delete</button>
+        <button onclick="checkCurrentAssets()">Check Current Assets</button>
+        <div id="testResults"></div>
+    </div>
+
+    <div class="test-section info">
+        <h3>🎯 How to Test in React App</h3>
+        <div class="result">
+            <strong>1. Test Single Delete Request:</strong><br>
+            <div class="url">• Open browser DevTools (F12)</div>
+            <div class="url">• Go to Network tab</div>
+            <div class="url">• Click delete button on any asset</div>
+            <div class="url">• Should see only ONE DELETE request to /api/assets/{id}</div>
+            <div class="url">• Should NOT see duplicate requests</div><br>
+            
+            <strong>2. Test UI Update:</strong><br>
+            <div class="url">• Click delete button on an asset</div>
+            <div class="url">• Asset should disappear from the list immediately</div>
+            <div class="url">• Should see success toast: "[Asset Name] deleted successfully!"</div>
+            <div class="url">• Refresh page - asset should still be gone (deleted from DB)</div><br>
+            
+            <strong>3. Expected Behavior:</strong><br>
+            <div class="url">• Single DELETE request (not double)</div>
+            <div class="url">• Immediate UI update</div>
+            <div class="url">• Success message</div>
+            <div class="url">• Asset removed from database</div>
+        </div>
+    </div>
+
+    <script>
+        async function testSingleDelete() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div style="color: #fbbf24;">Testing single delete request...</div>';
+            
+            try {
+                // Get current assets
+                const assetsResponse = await fetch('/api/assets');
+                const assets = await assetsResponse.json();
+                
+                if (assets.length === 0) {
+                    results.innerHTML = `
+                        <div style="color: #fbbf24;">
+                            <strong>⚠️ No assets to delete</strong><br>
+                            <div class="url">Add some assets first, then test deletion</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const testAsset = assets[0];
+                results.innerHTML = `
+                    <div style="color: #10b981;">
+                        <strong>✅ Single Delete Test Instructions:</strong><br>
+                        <div class="url">1. Open browser DevTools (F12)</div>
+                        <div class="url">2. Go to Network tab</div>
+                        <div class="url">3. Click delete button on "${testAsset.name}" in your React app</div>
+                        <div class="url">4. Should see only ONE DELETE request to /api/assets/${testAsset.id}</div>
+                        <div class="url">5. Should NOT see duplicate requests</div>
+                        <br>
+                        <strong>Check Network tab for single DELETE request! 🔍</strong>
+                    </div>
+                `;
+                
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testUIUpdate() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div style="color: #fbbf24;">Testing UI update after delete...</div>';
+            
+            try {
+                // Get current assets
+                const assetsResponse = await fetch('/api/assets');
+                const assets = await assetsResponse.json();
+                
+                if (assets.length === 0) {
+                    results.innerHTML = `
+                        <div style="color: #fbbf24;">
+                            <strong>⚠️ No assets to test with</strong><br>
+                            <div class="url">Add some assets first</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const testAsset = assets[0];
+                results.innerHTML = `
+                    <div style="color: #10b981;">
+                        <strong>✅ UI Update Test Instructions:</strong><br>
+                        <div class="url">1. Go to your React app Portfolio page</div>
+                        <div class="url">2. Note the current number of assets: ${assets.length}</div>
+                        <div class="url">3. Click delete button on "${testAsset.name}"</div>
+                        <div class="url">4. Asset should disappear immediately from the list</div>
+                        <div class="url">5. Should see success toast</div>
+                        <div class="url">6. Refresh page - asset should still be gone</div>
+                        <br>
+                        <strong>Asset should disappear from UI immediately! ⚡</strong>
+                    </div>
+                `;
+                
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function checkCurrentAssets() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div style="color: #fbbf24;">Checking current assets...</div>';
+            
+            try {
+                const response = await fetch('/api/assets');
+                if (response.ok) {
+                    const assets = await response.json();
+                    
+                    results.innerHTML = `
+                        <div style="color: #10b981;">
+                            <strong>📊 Current Assets:</strong><br>
+                            <div class="url">Total assets: ${assets.length}</div>
+                            <pre>${JSON.stringify(assets, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = `
+                        <div style="color: #ef4444;">
+                            <strong>❌ Failed to fetch assets:</strong> ${response.status} ${response.statusText}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run current assets check on page load
+        window.onload = function() {
+            setTimeout(() => {
+                checkCurrentAssets();
+            }, 1000);
+        };
+    </script>
+</body>
+</html> 

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dark Blue Theme Showcase</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #000; color: white; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #333; border-radius: 10px; }
+        .success { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1)); border-color: #10b981; }
+        .info { background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(8, 145, 178, 0.1)); border-color: #06b6d4; }
+        .blue { background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1)); border-color: #3b82f6; }
+        .indigo { background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(79, 70, 229, 0.1)); border-color: #6366f1; }
+        .dark { background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(17, 24, 39, 0.8)); border-color: #374151; }
+        button { padding: 12px 24px; margin: 8px; background: linear-gradient(135deg, #3b82f6, #6366f1); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        button:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4); }
+        .result { margin: 15px 0; padding: 15px; background: rgba(17, 24, 39, 0.8); border-radius: 8px; font-family: monospace; }
+        .url { color: #10b981; background: rgba(16, 185, 129, 0.2); padding: 8px; border-radius: 6px; margin: 8px 0; }
+        .feature { color: #3b82f6; background: rgba(59, 130, 246, 0.2); padding: 8px; border-radius: 6px; margin: 8px 0; }
+        .gradient-text { background: linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: bold; }
+        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 16px; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+        .showcase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
+        .showcase-item { background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1)); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 16px; padding: 20px; }
+        .color-palette { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 15px 0; }
+        .color-swatch { padding: 20px; border-radius: 12px; text-align: center; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        .blue-gradient { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .indigo-gradient { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .purple-gradient { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .navy-gradient { background: linear-gradient(135deg, #1e3a8a, #1e40af); }
+        .dark-blue { background: linear-gradient(135deg, #0f172a, #1e293b); }
+    </style>
+</head>
+<body>
+    <h1 class="gradient-text">🌊 Dark Blue Theme Showcase</h1>
+    
+    <div class="test-section dark">
+        <h3>🎨 Sophisticated Dark Blue Color Scheme</h3>
+        <div class="result">
+            <strong>🌟 Premium Blue Palette:</strong><br>
+            <div class="feature">• Background: black → blue-950 → black (deep blue)</div>
+            <div class="feature">• Overlays: blue-600/20, indigo-600/20, purple-600/20</div>
+            <div class="feature">• Borders: blue-600/30, blue-600/40 (blue borders)</div>
+            <div class="feature">• Shadows: shadow-blue-600/40 (blue shadows)</div>
+            <div class="feature">• Cards: gray-900/80, gray-800/80 (dark glassmorphism)</div>
+            <div class="feature">• Buttons: blue-600, indigo-600, purple-600 (blue buttons)</div>
+            <div class="feature">• Hover states: blue-700, indigo-700 (deeper blue)</div>
+        </div>
+    </div>
+
+    <div class="test-section blue">
+        <h3>🎨 New Blue Color Palette</h3>
+        <div class="color-palette">
+            <div class="color-swatch blue-gradient">Blue → Navy<br>#3b82f6 → #2563eb</div>
+            <div class="color-swatch indigo-gradient">Indigo → Purple<br>#6366f1 → #4f46e5</div>
+            <div class="color-swatch purple-gradient">Purple → Pink<br>#8b5cf6 → #7c3aed</div>
+            <div class="color-swatch navy-gradient">Navy → Dark<br>#1e3a8a → #1e40af</div>
+            <div class="color-swatch dark-blue">Dark Blue<br>#0f172a → #1e293b</div>
+        </div>
+    </div>
+
+    <div class="test-section success">
+        <h3>✅ Top Coins Page - Dark Blue Design</h3>
+        <div class="result">
+            <strong>🎯 Blue Elements:</strong><br>
+            <div class="url">• Background: black → blue-950 → black (deep blue)</div>
+            <div class="url">• Animated overlays: blue-600/20, indigo-600/20, purple-600/20</div>
+            <div class="url">• Radial gradient: rgba(59,130,246,0.3) (blue glow)</div>
+            <div class="url">• Cards: gray-900/80, gray-800/80 (dark glassmorphism)</div>
+            <div class="url">• Borders: blue-600/30, blue-600/40 (blue borders)</div>
+            <div class="url">• Buttons: blue-600→indigo-600, green-600→emerald-700</div>
+            <div class="url">• Shadows: shadow-blue-600/40 (blue shadows)</div>
+            <div class="url">• Price changes: green-600/30, red-600/30 (rich badges)</div>
+            <div class="url">• Market cap: gray-900/80, gray-800/80 (dark info cards)</div>
+            <div class="url">• Search: blue-400 icon, blue-600/40 border</div>
+            <div class="url">• Pagination: blue-600→indigo-600 active buttons</div>
+        </div>
+    </div>
+
+    <div class="test-section info">
+        <h3>📊 Analytics Page - Dark Blue Design</h3>
+        <div class="result">
+            <strong>📈 Blue Metrics:</strong><br>
+            <div class="url">• Same deep background: black → blue-950 → black</div>
+            <div class="url">• Metric cards: blue-600/30 borders, blue hover effects</div>
+            <div class="url">• Risk metrics: color-coded with 600-level gradients</div>
+            <div class="url">• Icons: blue-600→indigo-600, green-600→emerald-700</div>
+            <div class="url">• Tables: blue-600/40 borders, blue-600/20 hover</div>
+            <div class="url">• Progress bars: enhanced glow effects (60% opacity)</div>
+            <div class="url">• Badges: blue-600/30 backgrounds, blue-600/40 borders</div>
+            <div class="url">• Loading states: blue-600→indigo-600 gradients</div>
+            <div class="url">• Headers: blue-400→indigo-400→purple-400 gradients</div>
+        </div>
+    </div>
+
+    <div class="test-section indigo">
+        <h3>🎭 Visual Improvements</h3>
+        <div class="showcase-grid">
+            <div class="showcase-item">
+                <h4>🌊 Dark Blue Backgrounds</h4>
+                <div class="url">• Main: black → blue-950 → black</div>
+                <div class="url">• Cards: gray-900/80 → gray-800/80</div>
+                <div class="url">• Overlays: 600-level blue colors with 20% opacity</div>
+            </div>
+            <div class="showcase-item">
+                <h4>✨ Blue Gradients</h4>
+                <div class="url">• Blue: #3b82f6 → #2563eb</div>
+                <div class="url">• Indigo: #6366f1 → #4f46e5</div>
+                <div class="url">• Purple: #8b5cf6 → #7c3aed</div>
+                <div class="url">• Enhanced shadow effects</div>
+            </div>
+            <div class="showcase-item">
+                <h4>🎨 Blue Borders</h4>
+                <div class="url">• Primary: blue-600/30, blue-600/40</div>
+                <div class="url">• Hover: blue-500/50</div>
+                <div class="url">• Focus: blue-500 rings</div>
+                <div class="url">• Consistent blue styling</div>
+            </div>
+            <div class="showcase-item">
+                <h4>💫 Blue Shadows</h4>
+                <div class="url">• Cards: shadow-blue-600/30</div>
+                <div class="url">• Buttons: shadow-blue-600/40</div>
+                <div class="url">• Progress bars: 60% opacity glow</div>
+                <div class="url">• Enhanced depth perception</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section dark">
+        <h3>🧪 How to Test the Dark Blue Design</h3>
+        <div class="result">
+            <strong>1. Top Coins Page:</strong><br>
+            <div class="url">• Navigate to "Top Coins" in your React app</div>
+            <div class="url">• Notice the deep black background with blue-950</div>
+            <div class="url">• Observe blue borders on cards</div>
+            <div class="url">• See enhanced blue shadow effects on hover</div>
+            <div class="url">• Check the richer blue button gradients</div><br>
+            
+            <strong>2. Analytics Page:</strong><br>
+            <div class="url">• Navigate to "Analytics" in your React app</div>
+            <div class="url">• Notice the same deep blue background system</div>
+            <div class="url">• Observe blue metric card borders</div>
+            <div class="url">• See enhanced risk metric colors</div>
+            <div class="url">• Check the improved table styling with blue accents</div><br>
+            
+            <strong>3. Key Differences:</strong><br>
+            <div class="url">• Sophisticated dark blue appearance</div>
+            <div class="url">• Rich, cool blue colors</div>
+            <div class="url">• Enhanced shadow and glow effects</div>
+            <div class="url">• Better contrast and depth</div>
+            <div class="url">• Premium, professional visual hierarchy</div>
+        </div>
+    </div>
+
+    <div class="test-section blue">
+        <h3>🚀 Technical Improvements</h3>
+        <div class="result">
+            <strong>⚡ Enhanced Visual Quality:</strong><br>
+            <div class="feature">• Sophisticated blue color saturation for professional feel</div>
+            <div class="feature">• Improved contrast ratios for accessibility</div>
+            <div class="feature">• Enhanced shadow system for better depth</div>
+            <div class="feature">• Consistent 600-level blue color scheme</div>
+            <div class="feature">• Better hover state feedback</div>
+            <div class="feature">• Improved glassmorphism effects</div>
+            <div class="feature">• More professional appearance</div>
+            <div class="feature">• Better visual hierarchy</div>
+        </div>
+    </div>
+
+    <div class="test-section success">
+        <h3>🎨 Blue Color System Overview</h3>
+        <div class="result">
+            <strong>Background System:</strong><br>
+            <div class="url">Primary: black → blue-950 → black</div>
+            <div class="url">Overlay: blue-600/20, indigo-600/20, purple-600/20</div>
+            <div class="url">Radial: rgba(59,130,246,0.3)</div><br>
+            
+            <strong>Card System:</strong><br>
+            <div class="url">Background: gray-900/80 → gray-800/80</div>
+            <div class="url">Borders: blue-600/30, blue-600/40</div>
+            <div class="url">Hover: blue-500/50</div><br>
+            
+            <strong>Button System:</strong><br>
+            <div class="url">Primary: blue-600 → indigo-600</div>
+            <div class="url">Success: green-600 → emerald-700</div>
+            <div class="url">Info: indigo-600 → purple-700</div>
+            <div class="url">Hover: 700-level variants</div><br>
+            
+            <strong>Shadow System:</strong><br>
+            <div class="url">Cards: shadow-blue-600/30</div>
+            <div class="url">Buttons: shadow-blue-600/40</div>
+            <div class="url">Progress: 60% opacity glow</div>
+        </div>
+    </div>
+
+    <div class="test-section indigo">
+        <h3>🌊 Premium Features</h3>
+        <div class="result">
+            <strong>💎 Professional Design Elements:</strong><br>
+            <div class="feature">• Sophisticated dark blue color palette</div>
+            <div class="feature">• Premium glassmorphism effects</div>
+            <div class="feature">• Enhanced blue gradients</div>
+            <div class="feature">• Rich shadow and glow systems</div>
+            <div class="feature">• Professional visual hierarchy</div>
+            <div class="feature">• Elegant hover animations</div>
+            <div class="feature">• High-end user experience</div>
+            <div class="feature">• Modern, sophisticated appearance</div>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 150);
+                });
+            });
+
+            // Add some subtle animations
+            const showcaseItems = document.querySelectorAll('.showcase-item');
+            showcaseItems.forEach((item, index) => {
+                item.style.animationDelay = `${index * 0.1}s`;
+                item.style.animation = 'fadeInUp 0.6s ease-out forwards';
+            });
+
+            // Add color swatch hover effects
+            const colorSwatches = document.querySelectorAll('.color-swatch');
+            colorSwatches.forEach(swatch => {
+                swatch.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.05)';
+                    this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
+                });
+                swatch.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                    this.style.boxShadow = 'none';
+                });
+            });
+        });
+
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            .showcase-item {
+                opacity: 0;
+            }
+
+            .color-swatch {
+                transition: all 0.3s ease;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html> 

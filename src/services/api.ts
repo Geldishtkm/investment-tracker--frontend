@@ -109,6 +109,104 @@ export const assetService = {
     }
   },
 
+  // Get ROI
+  getROI: async (): Promise<number> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/roi`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch ROI');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching ROI:', error);
+      throw error;
+    }
+  },
+
+  // Get Sharpe Ratio
+  getSharpeRatio: async (): Promise<number> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/sharpe`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch Sharpe ratio');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching Sharpe ratio:', error);
+      throw error;
+    }
+  },
+
+  // Get Volatility
+  getVolatility: async (): Promise<number> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/volatility`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch volatility');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching volatility:', error);
+      throw error;
+    }
+  },
+
+  // Get Max Drawdown
+  getMaxDrawdown: async (): Promise<number> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/max-drawdown`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch max drawdown');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching max drawdown:', error);
+      throw error;
+    }
+  },
+
+  // Get Beta
+  getBeta: async (): Promise<number> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/beta`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch beta');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching beta:', error);
+      throw error;
+    }
+  },
+
+  // Get Diversification Score
+  getDiversificationScore: async (): Promise<number> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/diversification-score`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch diversification score');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching diversification score:', error);
+      throw error;
+    }
+  },
+
+  // Get Risk Metrics (combined)
+  getRiskMetrics: async (): Promise<any> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/risk-metrics`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch risk metrics');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching risk metrics:', error);
+      throw error;
+    }
+  },
+
   // Get crypto price
   getCryptoPrice: async (coinId: string): Promise<number> => {
     try {
@@ -142,14 +240,29 @@ export const assetService = {
   // Get all assets with current prices
   getAllAssetsWithPrices: async (): Promise<AssetWithPrice[]> => {
     try {
+      // First try the with-prices endpoint
       const response = await fetch(`${API_BASE_URL}/with-prices`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch assets with prices');
+      if (response.ok) {
+        return await response.json();
       }
-      return await response.json();
+      
+      // If that fails, fallback to regular assets and calculate prices on frontend
+      console.log('with-prices endpoint not available, using fallback');
+      const assets = await assetService.getAllAssets();
+      
+      // Convert regular assets to AssetWithPrice format
+      const assetsWithPrices: AssetWithPrice[] = assets.map(asset => ({
+        ...asset,
+        currentPrice: asset.pricePerUnit, // Use stored price as current price
+        priceChange: 0, // No price change data available
+        priceChangePercent: 0
+      }));
+      
+      return assetsWithPrices;
     } catch (error) {
       console.error('Error fetching assets with prices:', error);
-      throw error;
+      // Final fallback - return empty array
+      return [];
     }
   },
 
@@ -272,7 +385,7 @@ export const priceHistoryService = {
           'eth': 'ethereum'
         };
         
-        const alternativeId = alternativeIds[coinId.toLowerCase()];
+        const alternativeId = alternativeIds[coinId.toLowerCase() as keyof typeof alternativeIds];
         if (alternativeId) {
           console.log('🔄 Trying alternative coin ID:', alternativeId);
           return this.getPriceHistoryWithRange(alternativeId, days);
@@ -307,5 +420,70 @@ export const priceHistoryService = {
     }
   }
 };
+
+// Portfolio Analytics API calls
+export const analyticsService = {
+  // Get overall portfolio metrics
+  getPortfolioMetrics: async (): Promise<any> => {
+    try {
+      const response = await fetch('/api/assets/metrics');
+      if (!response.ok) throw new Error('Failed to fetch portfolio metrics');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching portfolio metrics:', error);
+      throw error;
+    }
+  },
+
+  // Get ROI for the portfolio
+  getROI: async (): Promise<number> => {
+    try {
+      const response = await fetch('/api/assets/roi');
+      if (!response.ok) throw new Error('Failed to fetch ROI');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching ROI:', error);
+      throw error;
+    }
+  },
+
+  // Get Sharpe Ratio
+  getSharpeRatio: async (): Promise<number> => {
+    try {
+      const response = await fetch('/api/assets/sharpe');
+      if (!response.ok) throw new Error('Failed to fetch Sharpe ratio');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching Sharpe ratio:', error);
+      throw error;
+    }
+  },
+
+  // Get individual asset performance
+  getAssetPerformance: async (): Promise<any[]> => {
+    try {
+      const response = await fetch('/api/assets/performance');
+      if (!response.ok) throw new Error('Failed to fetch asset performance');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching asset performance:', error);
+      throw error;
+    }
+  },
+
+  // Get risk metrics
+  getRiskMetrics: async (): Promise<any> => {
+    try {
+      const response = await fetch('/api/assets/risk-metrics');
+      if (!response.ok) throw new Error('Failed to fetch risk metrics');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching risk metrics:', error);
+      throw error;
+    }
+  }
+};
+
+
 
  

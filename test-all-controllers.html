@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Controllers Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #333; border-radius: 5px; }
+        .success { background-color: #1e3a2e; border-color: #10b981; }
+        .error { background-color: #3a1e1e; border-color: #ef4444; }
+        .info { background-color: #1e3a3a; border-color: #06b6d4; }
+        .warning { background-color: #3a2e1e; border-color: #f59e0b; }
+        button { padding: 10px 20px; margin: 5px; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #2563eb; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-family: monospace; }
+        .url { color: #10b981; background: #1e3a2e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        .response { color: #fbbf24; background: #3a2e1e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+        .endpoint-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin: 15px 0; }
+        .endpoint-card { background: #2a2a2a; padding: 15px; border-radius: 5px; border: 1px solid #444; }
+        .method { font-weight: bold; margin-bottom: 5px; }
+        .get { color: #10b981; }
+        .post { color: #3b82f6; }
+        .put { color: #f59e0b; }
+        .delete { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <h1>🎯 All Controllers Test</h1>
+    
+    <div class="test-section info">
+        <h3>📋 New Controller Endpoints</h3>
+        <div class="endpoint-grid">
+            <div class="endpoint-card">
+                <div class="method post">POST /api/assets</div>
+                <div>Add new asset (with initialInvestment calculation)</div>
+            </div>
+            <div class="endpoint-card">
+                <div class="method get">GET /api/assets</div>
+                <div>Get all assets</div>
+            </div>
+            <div class="endpoint-card">
+                <div class="method get">GET /api/assets/total</div>
+                <div>Get total portfolio value</div>
+            </div>
+            <div class="endpoint-card">
+                <div class="method get">GET /api/assets/roi</div>
+                <div>Get ROI (Return on Investment)</div>
+            </div>
+            <div class="endpoint-card">
+                <div class="method get">GET /api/assets/sharpe</div>
+                <div>Get Sharpe Ratio</div>
+            </div>
+            <div class="endpoint-card">
+                <div class="method get">GET /api/assets/volatility</div>
+                <div>Get Volatility</div>
+            </div>
+            <div class="endpoint-card">
+                <div class="method get">GET /api/assets/max-drawdown</div>
+                <div>Get Max Drawdown</div>
+            </div>
+            <div class="endpoint-card">
+                <div class="method get">GET /api/assets/beta</div>
+                <div>Get Beta</div>
+            </div>
+            <div class="endpoint-card">
+                <div class="method get">GET /api/assets/diversification-score</div>
+                <div>Get Diversification Score</div>
+            </div>
+            <div class="endpoint-card">
+                <div class="method get">GET /api/assets/risk-metrics</div>
+                <div>Get Combined Risk Metrics</div>
+            </div>
+            <div class="endpoint-card">
+                <div class="method put">PUT /api/assets/{id}/update-price</div>
+                <div>Update asset with current crypto price</div>
+            </div>
+            <div class="endpoint-card">
+                <div class="method delete">DELETE /api/assets/{id}</div>
+                <div>Delete asset by ID</div>
+            </div>
+            <div class="endpoint-card">
+                <div class="method get">GET /api/assets/with-prices</div>
+                <div>Get all assets with current crypto prices</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section info">
+        <h3>🧪 Test All Endpoints</h3>
+        <button onclick="testAllEndpoints()">Test All Endpoints</button>
+        <button onclick="testAddAsset()">Test Add Asset</button>
+        <button onclick="testAnalyticsEndpoints()">Test Analytics Only</button>
+        <div id="testResults"></div>
+    </div>
+
+    <div class="test-section success">
+        <h3>✅ Frontend Integration Status</h3>
+        <div class="result">
+            <strong>✅ AssetCard.tsx:</strong> Updated with correct onDelete signature and onShowToast prop<br>
+            <strong>✅ App.tsx:</strong> Uses assetService methods correctly<br>
+            <strong>✅ AnalyticsPage.tsx:</strong> Calls all analytics endpoints from backend<br>
+            <strong>✅ api.ts:</strong> All controller endpoints implemented<br>
+            <strong>✅ types/index.ts:</strong> All required interfaces defined<br><br>
+            
+            <strong>🎯 Key Changes Made:</strong><br>
+            • Fixed AssetCard interface mismatch<br>
+            • Added missing onShowToast prop<br>
+            • Updated function signatures to match<br>
+            • Implemented all analytics endpoints<br>
+            • Added proper error handling with toast notifications
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api/assets';
+        
+        async function testAllEndpoints() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div style="color: #fbbf24;">Testing all endpoints...</div>';
+            
+            const testResults = [];
+            
+            try {
+                // Test GET /api/assets
+                try {
+                    const assetsResponse = await fetch(API_BASE);
+                    if (assetsResponse.ok) {
+                        const assets = await assetsResponse.json();
+                        testResults.push(`✅ GET /api/assets: ${assets.length} assets found`);
+                    } else {
+                        testResults.push(`❌ GET /api/assets: ${assetsResponse.status} ${assetsResponse.statusText}`);
+                    }
+                } catch (error) {
+                    testResults.push(`❌ GET /api/assets: ${error.message}`);
+                }
+
+                // Test GET /api/assets/total
+                try {
+                    const totalResponse = await fetch(`${API_BASE}/total`);
+                    if (totalResponse.ok) {
+                        const total = await totalResponse.json();
+                        testResults.push(`✅ GET /api/assets/total: $${total.toLocaleString()}`);
+                    } else {
+                        testResults.push(`❌ GET /api/assets/total: ${totalResponse.status} ${totalResponse.statusText}`);
+                    }
+                } catch (error) {
+                    testResults.push(`❌ GET /api/assets/total: ${error.message}`);
+                }
+
+                // Test GET /api/assets/roi
+                try {
+                    const roiResponse = await fetch(`${API_BASE}/roi`);
+                    if (roiResponse.ok) {
+                        const roi = await roiResponse.json();
+                        testResults.push(`✅ GET /api/assets/roi: ${(roi * 100).toFixed(2)}%`);
+                    } else {
+                        testResults.push(`❌ GET /api/assets/roi: ${roiResponse.status} ${roiResponse.statusText}`);
+                    }
+                } catch (error) {
+                    testResults.push(`❌ GET /api/assets/roi: ${error.message}`);
+                }
+
+                // Test GET /api/assets/sharpe
+                try {
+                    const sharpeResponse = await fetch(`${API_BASE}/sharpe`);
+                    if (sharpeResponse.ok) {
+                        const sharpe = await sharpeResponse.json();
+                        testResults.push(`✅ GET /api/assets/sharpe: ${sharpe.toFixed(3)}`);
+                    } else {
+                        testResults.push(`❌ GET /api/assets/sharpe: ${sharpeResponse.status} ${sharpeResponse.statusText}`);
+                    }
+                } catch (error) {
+                    testResults.push(`❌ GET /api/assets/sharpe: ${error.message}`);
+                }
+
+                // Test GET /api/assets/volatility
+                try {
+                    const volatilityResponse = await fetch(`${API_BASE}/volatility`);
+                    if (volatilityResponse.ok) {
+                        const volatility = await volatilityResponse.json();
+                        testResults.push(`✅ GET /api/assets/volatility: ${(volatility * 100).toFixed(2)}%`);
+                    } else {
+                        testResults.push(`❌ GET /api/assets/volatility: ${volatilityResponse.status} ${volatilityResponse.statusText}`);
+                    }
+                } catch (error) {
+                    testResults.push(`❌ GET /api/assets/volatility: ${error.message}`);
+                }
+
+                // Test GET /api/assets/max-drawdown
+                try {
+                    const drawdownResponse = await fetch(`${API_BASE}/max-drawdown`);
+                    if (drawdownResponse.ok) {
+                        const drawdown = await drawdownResponse.json();
+                        testResults.push(`✅ GET /api/assets/max-drawdown: ${(drawdown * 100).toFixed(2)}%`);
+                    } else {
+                        testResults.push(`❌ GET /api/assets/max-drawdown: ${drawdownResponse.status} ${drawdownResponse.statusText}`);
+                    }
+                } catch (error) {
+                    testResults.push(`❌ GET /api/assets/max-drawdown: ${error.message}`);
+                }
+
+                // Test GET /api/assets/beta
+                try {
+                    const betaResponse = await fetch(`${API_BASE}/beta`);
+                    if (betaResponse.ok) {
+                        const beta = await betaResponse.json();
+                        testResults.push(`✅ GET /api/assets/beta: ${beta.toFixed(3)}`);
+                    } else {
+                        testResults.push(`❌ GET /api/assets/beta: ${betaResponse.status} ${betaResponse.statusText}`);
+                    }
+                } catch (error) {
+                    testResults.push(`❌ GET /api/assets/beta: ${error.message}`);
+                }
+
+                // Test GET /api/assets/diversification-score
+                try {
+                    const diversificationResponse = await fetch(`${API_BASE}/diversification-score`);
+                    if (diversificationResponse.ok) {
+                        const diversification = await diversificationResponse.json();
+                        testResults.push(`✅ GET /api/assets/diversification-score: ${diversification.toFixed(2)}/10`);
+                    } else {
+                        testResults.push(`❌ GET /api/assets/diversification-score: ${diversificationResponse.status} ${diversificationResponse.statusText}`);
+                    }
+                } catch (error) {
+                    testResults.push(`❌ GET /api/assets/diversification-score: ${error.message}`);
+                }
+
+                // Test GET /api/assets/risk-metrics
+                try {
+                    const riskResponse = await fetch(`${API_BASE}/risk-metrics`);
+                    if (riskResponse.ok) {
+                        const risk = await riskResponse.json();
+                        testResults.push(`✅ GET /api/assets/risk-metrics: Combined metrics available`);
+                    } else {
+                        testResults.push(`❌ GET /api/assets/risk-metrics: ${riskResponse.status} ${riskResponse.statusText}`);
+                    }
+                } catch (error) {
+                    testResults.push(`❌ GET /api/assets/risk-metrics: ${error.message}`);
+                }
+
+                // Test GET /api/assets/with-prices
+                try {
+                    const withPricesResponse = await fetch(`${API_BASE}/with-prices`);
+                    if (withPricesResponse.ok) {
+                        const withPrices = await withPricesResponse.json();
+                        testResults.push(`✅ GET /api/assets/with-prices: ${withPrices.length} assets with current prices`);
+                    } else {
+                        testResults.push(`❌ GET /api/assets/with-prices: ${withPricesResponse.status} ${withPricesResponse.statusText}`);
+                    }
+                } catch (error) {
+                    testResults.push(`❌ GET /api/assets/with-prices: ${error.message}`);
+                }
+
+            } catch (error) {
+                testResults.push(`❌ General error: ${error.message}`);
+            }
+
+            results.innerHTML = `
+                <div style="color: #10b981;">
+                    <strong>📊 Test Results:</strong><br>
+                    <pre class="response">${testResults.join('\n')}</pre>
+                </div>
+            `;
+        }
+
+        async function testAddAsset() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div style="color: #fbbf24;">Testing add asset with initialInvestment calculation...</div>';
+            
+            try {
+                const testAsset = {
+                    name: "Test Bitcoin",
+                    quantity: 0.5,
+                    pricePerUnit: 50000.00
+                };
+
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testAsset),
+                });
+
+                if (response.ok) {
+                    const addedAsset = await response.json();
+                    results.innerHTML = `
+                        <div style="color: #10b981;">
+                            <strong>✅ Asset Added Successfully!</strong><br>
+                            <pre class="response">${JSON.stringify(addedAsset, null, 2)}</pre>
+                            <div class="url">Note: initialInvestment should be calculated automatically: ${addedAsset.quantity * addedAsset.pricePerUnit}</div>
+                        </div>
+                    `;
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    results.innerHTML = `
+                        <div style="color: #ef4444;">
+                            <strong>❌ Failed to add asset:</strong> ${response.status} ${response.statusText}<br>
+                            <pre class="response">${JSON.stringify(errorData, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Error:</strong> ${error.message}<br>
+                        Make sure your Spring Boot backend is running on port 8080
+                    </div>
+                `;
+            }
+        }
+
+        async function testAnalyticsEndpoints() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div style="color: #fbbf24;">Testing analytics endpoints...</div>';
+            
+            const analyticsResults = [];
+            
+            try {
+                const endpoints = [
+                    { name: 'ROI', url: `${API_BASE}/roi` },
+                    { name: 'Sharpe Ratio', url: `${API_BASE}/sharpe` },
+                    { name: 'Volatility', url: `${API_BASE}/volatility` },
+                    { name: 'Max Drawdown', url: `${API_BASE}/max-drawdown` },
+                    { name: 'Beta', url: `${API_BASE}/beta` },
+                    { name: 'Diversification Score', url: `${API_BASE}/diversification-score` },
+                    { name: 'Risk Metrics', url: `${API_BASE}/risk-metrics` }
+                ];
+
+                for (const endpoint of endpoints) {
+                    try {
+                        const response = await fetch(endpoint.url);
+                        if (response.ok) {
+                            const data = await response.json();
+                            analyticsResults.push(`✅ ${endpoint.name}: ${JSON.stringify(data)}`);
+                        } else {
+                            analyticsResults.push(`❌ ${endpoint.name}: ${response.status} ${response.statusText}`);
+                        }
+                    } catch (error) {
+                        analyticsResults.push(`❌ ${endpoint.name}: ${error.message}`);
+                    }
+                }
+
+                results.innerHTML = `
+                    <div style="color: #10b981;">
+                        <strong>📈 Analytics Endpoints Test Results:</strong><br>
+                        <pre class="response">${analyticsResults.join('\n')}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run basic test on page load
+        window.onload = function() {
+            setTimeout(() => {
+                testAllEndpoints();
+            }, 1000);
+        };
+    </script>
+</body>
+</html> 

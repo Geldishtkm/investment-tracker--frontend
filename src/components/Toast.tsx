@@ -3,7 +3,7 @@ import { CheckCircle, XCircle, X } from 'lucide-react';
 
 interface ToastProps {
   message: string;
-  type: 'success' | 'error';
+  type: 'success' | 'error' | 'info';
   isVisible: boolean;
   onClose: () => void;
 }
@@ -23,15 +23,21 @@ const Toast: React.FC<ToastProps> = ({ message, type, isVisible, onClose }) => {
 
   const bgColor = type === 'success' 
     ? 'bg-gradient-to-r from-green-500/90 to-emerald-600/90' 
-    : 'bg-gradient-to-r from-red-500/90 to-red-600/90';
+    : type === 'error'
+    ? 'bg-gradient-to-r from-red-500/90 to-red-600/90'
+    : 'bg-gradient-to-r from-blue-500/90 to-blue-600/90';
   
   const borderColor = type === 'success' 
     ? 'border-green-400/30' 
-    : 'border-red-400/30';
+    : type === 'error'
+    ? 'border-red-400/30'
+    : 'border-blue-400/30';
   
   const iconColor = type === 'success' 
     ? 'text-green-100' 
-    : 'text-red-100';
+    : type === 'error'
+    ? 'text-red-100'
+    : 'text-blue-100';
 
   return (
     <div className="fixed top-6 right-6 z-50 animate-in slide-in-from-right-full duration-300">
@@ -40,8 +46,10 @@ const Toast: React.FC<ToastProps> = ({ message, type, isVisible, onClose }) => {
           <div className={`flex-shrink-0 ${iconColor}`}>
             {type === 'success' ? (
               <CheckCircle size={20} className="animate-pulse" />
-            ) : (
+            ) : type === 'error' ? (
               <XCircle size={20} className="animate-pulse" />
+            ) : (
+              <div className="w-5 h-5 rounded-full border-2 border-current animate-pulse" />
             )}
           </div>
           
@@ -62,7 +70,7 @@ const Toast: React.FC<ToastProps> = ({ message, type, isVisible, onClose }) => {
         {/* Progress bar */}
         <div className="mt-3 h-1 bg-white/20 rounded-full overflow-hidden">
           <div 
-            className={`h-full ${type === 'success' ? 'bg-green-100' : 'bg-red-100'} rounded-full transition-all duration-3000 ease-linear`}
+            className={`h-full ${type === 'success' ? 'bg-green-100' : type === 'error' ? 'bg-red-100' : 'bg-blue-100'} rounded-full transition-all duration-3000 ease-linear`}
             style={{ width: '100%' }}
           />
         </div>

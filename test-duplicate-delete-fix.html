@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Duplicate & Delete Fix Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #333; border-radius: 5px; }
+        .success { background-color: #1e3a2e; border-color: #10b981; }
+        .error { background-color: #3a1e1e; border-color: #ef4444; }
+        .info { background-color: #1e3a3a; border-color: #06b6d4; }
+        button { padding: 10px 20px; margin: 5px; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #2563eb; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-family: monospace; }
+        .url { color: #10b981; background: #1e3a2e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        .response { color: #fbbf24; background: #3a2e1e; padding: 5px; border-radius: 3px; margin: 5px 0; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Duplicate & Delete Fix Test</h1>
+    
+    <div class="test-section success">
+        <h3>✅ Issues Fixed</h3>
+        <div class="result">
+            <strong>1. Duplicate Assets Issue:</strong><br>
+            • <span class="success">✅ Fixed: Removed double API call in CoinsPage</span><br>
+            • <span class="success">✅ Fixed: CoinsPage now only calls onAssetAdded()</span><br>
+            • <span class="success">✅ Fixed: App.tsx handles the actual API call</span><br><br>
+            
+            <strong>2. Delete Success Message Issue:</strong><br>
+            • <span class="success">✅ Fixed: Updated delete confirmation modal</span><br>
+            • <span class="success">✅ Fixed: Proper modal closing after deletion</span><br>
+            • <span class="success">✅ Fixed: Success toast shows asset name</span><br><br>
+            
+            <strong>3. Toast System Fix:</strong><br>
+            • <span class="success">✅ Fixed: Created AppToast component for App.tsx</span><br>
+            • <span class="success">✅ Fixed: Resolved type mismatches</span><br>
+            • <span class="success">✅ Fixed: Unified toast system</span>
+        </div>
+    </div>
+
+    <div class="test-section info">
+        <h3>🧪 Test the Fixes</h3>
+        <button onclick="testAddAsset()">Test Add Asset (No Duplicates)</button>
+        <button onclick="testDeleteAsset()">Test Delete Asset (With Success Message)</button>
+        <button onclick="testCurrentAssets()">Check Current Assets</button>
+        <div id="testResults"></div>
+    </div>
+
+    <div class="test-section info">
+        <h3>🎯 How to Test in React App</h3>
+        <div class="result">
+            <strong>1. Test Add Asset (No Duplicates):</strong><br>
+            <div class="url">• Go to "🪙 Top Coins" page</div>
+            <div class="url">• Enter quantity for Ethereum (e.g., 23)</div>
+            <div class="url">• Click "Add to Portfolio"</div>
+            <div class="url">• Should see only ONE Ethereum asset added</div>
+            <div class="url">• Should see success toast: "Asset added successfully!"</div><br>
+            
+            <strong>2. Test Delete Asset (With Success Message):</strong><br>
+            <div class="url">• Go to "📊 Portfolio" page</div>
+            <div class="url">• Click delete button on any asset</div>
+            <div class="url">• Confirm deletion in modal</div>
+            <div class="url">• Should see success toast: "[Asset Name] deleted successfully!"</div>
+            <div class="url">• Modal should close automatically</div><br>
+            
+            <strong>3. Expected Behavior:</strong><br>
+            <div class="url">• No duplicate assets when adding</div>
+            <div class="url">• Success messages for all operations</div>
+            <div class="url">• Proper modal closing</div>
+            <div class="url">• Clean UI state management</div>
+        </div>
+    </div>
+
+    <script>
+        async function testAddAsset() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div style="color: #fbbf24;">Testing add asset (no duplicates)...</div>';
+            
+            try {
+                // First, get current assets count
+                const beforeResponse = await fetch('/api/assets');
+                const beforeAssets = await beforeResponse.json();
+                const beforeCount = beforeAssets.length;
+                
+                // Add a test asset
+                const testAsset = {
+                    name: "Test Ethereum",
+                    quantity: 23,
+                    pricePerUnit: 3583.67
+                };
+
+                const addResponse = await fetch('/api/assets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testAsset),
+                });
+
+                if (addResponse.ok) {
+                    const addedAsset = await addResponse.json();
+                    
+                    // Check if only one asset was added
+                    const afterResponse = await fetch('/api/assets');
+                    const afterAssets = await afterResponse.json();
+                    const afterCount = afterAssets.length;
+                    
+                    if (afterCount === beforeCount + 1) {
+                        results.innerHTML = `
+                            <div style="color: #10b981;">
+                                <strong>✅ Add Asset Test Passed!</strong><br>
+                                <div class="url">Assets before: ${beforeCount}</div>
+                                <div class="url">Assets after: ${afterCount}</div>
+                                <div class="url">Difference: ${afterCount - beforeCount} (should be 1)</div>
+                                <div class="response">Asset added: ${addedAsset.name} (ID: ${addedAsset.id})</div>
+                                <pre>${JSON.stringify(addedAsset, null, 2)}</pre>
+                            </div>
+                        `;
+                    } else {
+                        results.innerHTML = `
+                            <div style="color: #ef4444;">
+                                <strong>❌ Duplicate Assets Detected!</strong><br>
+                                <div class="url">Assets before: ${beforeCount}</div>
+                                <div class="url">Assets after: ${afterCount}</div>
+                                <div class="url">Difference: ${afterCount - beforeCount} (should be 1)</div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    const errorData = await addResponse.json().catch(() => ({}));
+                    results.innerHTML = `
+                        <div style="color: #ef4444;">
+                            <strong>❌ Failed to add asset:</strong><br>
+                            <div class="url">Status: ${addResponse.status} ${addResponse.statusText}</div>
+                            <pre>${JSON.stringify(errorData, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testDeleteAsset() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div style="color: #fbbf24;">Testing delete asset functionality...</div>';
+            
+            try {
+                // Get current assets
+                const assetsResponse = await fetch('/api/assets');
+                const assets = await assetsResponse.json();
+                
+                if (assets.length === 0) {
+                    results.innerHTML = `
+                        <div style="color: #fbbf24;">
+                            <strong>⚠️ No assets to delete</strong><br>
+                            <div class="url">Add some assets first, then test deletion</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const testAsset = assets[0];
+                results.innerHTML = `
+                    <div style="color: #fbbf24;">
+                        <strong>Testing deletion of:</strong> ${testAsset.name} (ID: ${testAsset.id})<br>
+                        <div class="url">This simulates the delete process</div>
+                    </div>
+                `;
+                
+                // Simulate delete (don't actually delete for testing)
+                setTimeout(() => {
+                    results.innerHTML = `
+                        <div style="color: #10b981;">
+                            <strong>✅ Delete Test Instructions:</strong><br>
+                            <div class="url">1. Go to your React app Portfolio page</div>
+                            <div class="url">2. Click delete button on "${testAsset.name}"</div>
+                            <div class="url">3. Confirm deletion in modal</div>
+                            <div class="url">4. Should see: "${testAsset.name} deleted successfully!"</div>
+                            <div class="url">5. Modal should close automatically</div>
+                            <div class="url">6. Asset should disappear from list</div>
+                        </div>
+                    `;
+                }, 2000);
+                
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testCurrentAssets() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div style="color: #fbbf24;">Checking current assets...</div>';
+            
+            try {
+                const response = await fetch('/api/assets');
+                if (response.ok) {
+                    const assets = await response.json();
+                    
+                    // Check for duplicates
+                    const assetNames = assets.map(a => a.name);
+                    const uniqueNames = [...new Set(assetNames)];
+                    const duplicates = assetNames.length - uniqueNames.length;
+                    
+                    if (duplicates === 0) {
+                        results.innerHTML = `
+                            <div style="color: #10b981;">
+                                <strong>✅ No Duplicates Found!</strong><br>
+                                <div class="url">Total assets: ${assets.length}</div>
+                                <div class="url">Unique assets: ${uniqueNames.length}</div>
+                                <div class="url">Duplicates: ${duplicates}</div>
+                                <pre>${JSON.stringify(assets, null, 2)}</pre>
+                            </div>
+                        `;
+                    } else {
+                        results.innerHTML = `
+                            <div style="color: #ef4444;">
+                                <strong>❌ Duplicates Found!</strong><br>
+                                <div class="url">Total assets: ${assets.length}</div>
+                                <div class="url">Unique assets: ${uniqueNames.length}</div>
+                                <div class="url">Duplicates: ${duplicates}</div>
+                                <pre>${JSON.stringify(assets, null, 2)}</pre>
+                            </div>
+                        `;
+                    }
+                } else {
+                    results.innerHTML = `
+                        <div style="color: #ef4444;">
+                            <strong>❌ Failed to fetch assets:</strong> ${response.status} ${response.statusText}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="color: #ef4444;">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run current assets test on page load
+        window.onload = function() {
+            setTimeout(() => {
+                testCurrentAssets();
+            }, 1000);
+        };
+    </script>
+</body>
+</html> 
