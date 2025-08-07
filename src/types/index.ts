@@ -15,6 +15,27 @@ export interface AssetFormData {
   initialInvestment: string;
 }
 
+// Authentication Types
+export interface LoginCredentials {
+  username: string;
+  password: string;
+}
+
+export interface RegisterCredentials {
+  username: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  message?: string;
+}
+
+export interface User {
+  username: string;
+  isAuthenticated: boolean;
+}
+
 export interface ApiResponse<T> {
   data: T;
   message?: string;

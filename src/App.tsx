@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { assetService } from './services/api';
-import { Asset, AssetWithPrice } from './types';
+import { authService } from './services/authService';
+import { Asset, AssetWithPrice, User } from './types';
 import AssetCard from './components/AssetCard';
 import PortfolioSummary from './components/PortfolioSummary';
 import EmptyState from './components/EmptyState';
 import CoinsPage from './components/CoinsPage';
 import AnalyticsPage from './components/AnalyticsPage';
+import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage';
+
 // Inline Toast component for App.tsx
 const AppToast: React.FC<{
   type: 'success' | 'error' | 'info';
@@ -43,8 +47,8 @@ const AppToast: React.FC<{
   );
 };
 
-
 type Page = 'portfolio' | 'coins' | 'analytics';
+type AuthPage = 'login' | 'register';
 
 interface ToastMessage {
   id: string;
@@ -52,18 +56,31 @@ interface ToastMessage {
   message: string;
 }
 
-
-
 function App() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [assetsWithPrices, setAssetsWithPrices] = useState<AssetWithPrice[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState<Page>('portfolio');
+  const [currentAuthPage, setCurrentAuthPage] = useState<AuthPage>('login');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-
+  // Check authentication on app load
   useEffect(() => {
-    loadAssets();
+    const checkAuth = () => {
+      const authenticated = authService.isAuthenticated();
+      setIsAuthenticated(authenticated);
+      if (authenticated) {
+        const user = authService.getCurrentUser();
+        setCurrentUser(user);
+        loadAssets();
+      } else {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
   const loadAssets = async () => {
@@ -148,6 +165,28 @@ function App() {
     }
   };
 
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+    const user = authService.getCurrentUser();
+    setCurrentUser(user);
+    showToast('success', 'Login successful! Welcome back.');
+    loadAssets();
+  };
+
+  const handleRegisterSuccess = () => {
+    showToast('success', 'Account created successfully! Please log in.');
+    setCurrentAuthPage('login');
+  };
+
+  const handleLogout = () => {
+    authService.removeToken();
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    setAssets([]);
+    setAssetsWithPrices([]);
+    showToast('success', 'Logged out successfully');
+  };
+
   const showToast = (type: 'success' | 'error' | 'info', message: string) => {
     const id = Date.now().toString();
     setToasts(prev => [...prev, { id, type, message }]);
@@ -160,7 +199,36 @@ function App() {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
-
+  // Show authentication pages if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-900">
+        {currentAuthPage === 'login' ? (
+          <LoginPage
+            onLoginSuccess={handleLoginSuccess}
+            onSwitchToRegister={() => setCurrentAuthPage('register')}
+          />
+        ) : (
+          <RegisterPage
+            onRegisterSuccess={handleRegisterSuccess}
+            onSwitchToLogin={() => setCurrentAuthPage('login')}
+          />
+        )}
+        
+        {/* Toast Notifications */}
+        <div className="fixed top-4 right-4 z-50 space-y-2">
+          {toasts.map((toast) => (
+            <AppToast
+              key={toast.id}
+              type={toast.type}
+              message={toast.message}
+              onClose={() => removeToast(toast.id)}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -178,8 +246,13 @@ function App() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <h1 className="text-xl font-bold text-green-400">💰 Portfolio Tracker</h1>
+              {currentUser && (
+                <span className="ml-4 text-sm text-gray-300">
+                  Welcome, {currentUser.username}!
+                </span>
+              )}
             </div>
-            <div className="flex space-x-4">
+            <div className="flex items-center space-x-4">
               <button
                 onClick={() => setCurrentPage('portfolio')}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -209,6 +282,12 @@ function App() {
                 }`}
               >
                 📈 Analytics
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-3 py-2 rounded-md text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors"
+              >
+                🚪 Logout
               </button>
             </div>
           </div>
@@ -273,8 +352,6 @@ function App() {
           />
         ))}
       </div>
-
-
     </div>
   );
 }

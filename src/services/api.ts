@@ -1,4 +1,5 @@
 import { Asset, CryptoPrice, AssetWithPrice, Coin, PriceHistoryPoint } from '../types';
+import { authService } from './authService';
 
 const API_BASE_URL = '/api/assets';
 
@@ -6,7 +7,12 @@ export const assetService = {
   // Get all assets
   getAllAssets: async (): Promise<Asset[]> => {
     try {
-      const response = await fetch(API_BASE_URL);
+      const response = await fetch(API_BASE_URL, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch assets');
       }
@@ -24,6 +30,7 @@ export const assetService = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...authService.getAuthHeader()
         },
         body: JSON.stringify(asset),
       });
@@ -47,6 +54,7 @@ export const assetService = {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...authService.getAuthHeader()
         },
         body: JSON.stringify(asset),
       });
@@ -68,6 +76,9 @@ export const assetService = {
     try {
       const response = await fetch(`${API_BASE_URL}/${id}`, {
         method: 'DELETE',
+        headers: {
+          ...authService.getAuthHeader()
+        }
       });
       
       if (!response.ok) {
@@ -84,7 +95,11 @@ export const assetService = {
   // Get asset by ID
   getAssetById: async (id: number): Promise<Asset> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/${id}`);
+      const response = await fetch(`${API_BASE_URL}/${id}`, {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch asset');
       }
@@ -98,7 +113,11 @@ export const assetService = {
   // Get total portfolio value
   getTotalValue: async (): Promise<number> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/total`);
+      const response = await fetch(`${API_BASE_URL}/total`, {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch total value');
       }
@@ -112,7 +131,11 @@ export const assetService = {
   // Get ROI
   getROI: async (): Promise<number> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/roi`);
+      const response = await fetch(`${API_BASE_URL}/roi`, {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch ROI');
       }
@@ -126,7 +149,11 @@ export const assetService = {
   // Get Sharpe Ratio
   getSharpeRatio: async (): Promise<number> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/sharpe`);
+      const response = await fetch(`${API_BASE_URL}/sharpe`, {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch Sharpe ratio');
       }
@@ -140,7 +167,11 @@ export const assetService = {
   // Get Volatility
   getVolatility: async (): Promise<number> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/volatility`);
+      const response = await fetch(`${API_BASE_URL}/volatility`, {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch volatility');
       }
@@ -154,7 +185,11 @@ export const assetService = {
   // Get Max Drawdown
   getMaxDrawdown: async (): Promise<number> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/max-drawdown`);
+      const response = await fetch(`${API_BASE_URL}/max-drawdown`, {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch max drawdown');
       }
@@ -168,7 +203,11 @@ export const assetService = {
   // Get Beta
   getBeta: async (): Promise<number> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/beta`);
+      const response = await fetch(`${API_BASE_URL}/beta`, {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch beta');
       }
@@ -182,7 +221,11 @@ export const assetService = {
   // Get Diversification Score
   getDiversificationScore: async (): Promise<number> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/diversification-score`);
+      const response = await fetch(`${API_BASE_URL}/diversification`, {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch diversification score');
       }
@@ -193,10 +236,14 @@ export const assetService = {
     }
   },
 
-  // Get Risk Metrics (combined)
+  // Get Risk Metrics
   getRiskMetrics: async (): Promise<any> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/risk-metrics`);
+      const response = await fetch(`${API_BASE_URL}/risk-metrics`, {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch risk metrics');
       }
@@ -210,7 +257,11 @@ export const assetService = {
   // Get crypto price
   getCryptoPrice: async (coinId: string): Promise<number> => {
     try {
-      const response = await fetch(`/api/crypto/price/${coinId}`);
+      const response = await fetch(`/api/crypto/price/${coinId}`, {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) {
         throw new Error(`Failed to fetch price for ${coinId}`);
       }
@@ -226,6 +277,9 @@ export const assetService = {
     try {
       const response = await fetch(`/api/assets/${assetId}/update-price`, {
         method: 'PUT',
+        headers: {
+          ...authService.getAuthHeader()
+        }
       });
       if (!response.ok) {
         throw new Error('Failed to update asset price');
@@ -241,7 +295,11 @@ export const assetService = {
   getAllAssetsWithPrices: async (): Promise<AssetWithPrice[]> => {
     try {
       // First try the with-prices endpoint
-      const response = await fetch(`${API_BASE_URL}/with-prices`);
+      const response = await fetch(`${API_BASE_URL}/with-prices`, {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (response.ok) {
         return await response.json();
       }
@@ -284,7 +342,11 @@ export const assetService = {
   // Get top 300 coins with images and prices
   getTopCoins: async (): Promise<Coin[]> => {
     try {
-      const response = await fetch('/api/crypto/top');
+      const response = await fetch('/api/crypto/top', {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch top coins');
       }
@@ -298,7 +360,11 @@ export const assetService = {
   // Get detailed coin information
   getCoinDetails: async (coinId: string): Promise<Coin> => {
     try {
-      const response = await fetch(`/api/crypto/details/${coinId}`);
+      const response = await fetch(`/api/crypto/details/${coinId}`, {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) {
         throw new Error(`Failed to fetch details for ${coinId}`);
       }
@@ -316,7 +382,11 @@ export const priceHistoryService = {
   async getPriceHistory(coinId: string): Promise<PriceHistoryPoint[]> {
     try {
       console.log('🔍 Fetching price history for:', coinId);
-      const response = await fetch(`http://localhost:8080/api/price-history/${coinId}`);
+      const response = await fetch(`http://localhost:8080/api/price-history/${coinId}`, {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       
       console.log('📡 Response status:', response.status);
       
@@ -360,7 +430,11 @@ export const priceHistoryService = {
       console.log('🔍 Fetching price history with range for:', coinId, 'days:', days);
       
       // Your backend already fetches 90 days of data, so we'll filter on frontend
-      const response = await fetch(`http://localhost:8080/api/price-history/${coinId}`);
+      const response = await fetch(`http://localhost:8080/api/price-history/${coinId}`, {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       
       console.log('📡 Response status:', response.status);
       
@@ -426,7 +500,11 @@ export const analyticsService = {
   // Get overall portfolio metrics
   getPortfolioMetrics: async (): Promise<any> => {
     try {
-      const response = await fetch('/api/assets/metrics');
+      const response = await fetch('/api/assets/metrics', {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch portfolio metrics');
       return await response.json();
     } catch (error) {
@@ -438,7 +516,11 @@ export const analyticsService = {
   // Get ROI for the portfolio
   getROI: async (): Promise<number> => {
     try {
-      const response = await fetch('/api/assets/roi');
+      const response = await fetch('/api/assets/roi', {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch ROI');
       return await response.json();
     } catch (error) {
@@ -450,7 +532,11 @@ export const analyticsService = {
   // Get Sharpe Ratio
   getSharpeRatio: async (): Promise<number> => {
     try {
-      const response = await fetch('/api/assets/sharpe');
+      const response = await fetch('/api/assets/sharpe', {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch Sharpe ratio');
       return await response.json();
     } catch (error) {
@@ -462,7 +548,11 @@ export const analyticsService = {
   // Get individual asset performance
   getAssetPerformance: async (): Promise<any[]> => {
     try {
-      const response = await fetch('/api/assets/performance');
+      const response = await fetch('/api/assets/performance', {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch asset performance');
       return await response.json();
     } catch (error) {
@@ -474,7 +564,11 @@ export const analyticsService = {
   // Get risk metrics
   getRiskMetrics: async (): Promise<any> => {
     try {
-      const response = await fetch('/api/assets/risk-metrics');
+      const response = await fetch('/api/assets/risk-metrics', {
+        headers: {
+          ...authService.getAuthHeader()
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch risk metrics');
       return await response.json();
     } catch (error) {
